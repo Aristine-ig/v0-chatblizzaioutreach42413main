@@ -1,101 +1,120 @@
-import { useState, useRef } from 'react';
-import { Camera, X, Upload, Loader2, Flame, Beef, Cookie, Droplet, Lightbulb, ArrowRight, RefreshCw, Plus, Edit3 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { ENV } from '../config/env';
+"use client"
+
+import type React from "react"
+
+import { useState, useRef } from "react"
+import {
+  Camera,
+  X,
+  Upload,
+  Loader2,
+  Flame,
+  Beef,
+  Cookie,
+  Droplet,
+  Lightbulb,
+  ArrowRight,
+  RefreshCw,
+  Plus,
+  Edit3,
+} from "lucide-react"
+import { supabase } from "../lib/supabase"
+import { ENV } from "../config/env"
+import { achievementService } from "../services/achievementService"
 
 interface FoodItem {
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
+  name: string
+  calories: number
+  protein: number
+  carbs: number
+  fats: number
 }
 
 interface AnalysisResult {
-  is_food: boolean;
-  item_name?: string;
-  description?: string;
-  food_name?: string;
-  serving_size?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  fiber?: number;
-  sugar?: number;
-  sodium?: number;
-  items?: FoodItem[];
+  is_food: boolean
+  item_name?: string
+  description?: string
+  food_name?: string
+  serving_size?: string
+  calories: number
+  protein: number
+  carbs: number
+  fats: number
+  fiber?: number
+  sugar?: number
+  sodium?: number
+  items?: FoodItem[]
 }
 
 interface Alternative {
-  name: string;
-  description: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  benefits: string[];
-  swapTips: string;
+  name: string
+  description: string
+  calories: number
+  protein: number
+  carbs: number
+  fats: number
+  benefits: string[]
+  swapTips: string
 }
 
 interface CameraCaptureProps {
-  userId: string;
-  onClose: () => void;
-  onFoodLogged: () => void;
-  userGoal?: 'cut' | 'bulk';
+  userId: string
+  onClose: () => void
+  onFoodLogged: () => void
+  userGoal?: "cut" | "bulk"
 }
 
-export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal = 'cut' }: CameraCaptureProps) {
-  const [image, setImage] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState('');
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [showAlternatives, setShowAlternatives] = useState(false);
-  const [alternatives, setAlternatives] = useState<Alternative[]>([]);
-  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
-  const [showManualInput, setShowManualInput] = useState(false);
-  const [manualItemName, setManualItemName] = useState('');
-  const [manualItemQuantity, setManualItemQuantity] = useState('');
-  const [analyzingManualItem, setAnalyzingManualItem] = useState(false);
-  const [useManualNutrition, setUseManualNutrition] = useState(false);
-  const [manualCalories, setManualCalories] = useState('');
-  const [manualProtein, setManualProtein] = useState('');
-  const [manualCarbs, setManualCarbs] = useState('');
-  const [manualFats, setManualFats] = useState('');
-  const [itemsAddedCount, setItemsAddedCount] = useState(0);
+export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal = "cut" }: CameraCaptureProps) {
+  const [image, setImage] = useState<string | null>(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [error, setError] = useState("")
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [showAlternatives, setShowAlternatives] = useState(false)
+  const [alternatives, setAlternatives] = useState<Alternative[]>([])
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false)
+  const [showManualInput, setShowManualInput] = useState(false)
+  const [manualItemName, setManualItemName] = useState("")
+  const [manualItemQuantity, setManualItemQuantity] = useState("")
+  const [analyzingManualItem, setAnalyzingManualItem] = useState(false)
+  const [useManualNutrition, setUseManualNutrition] = useState(false)
+  const [manualCalories, setManualCalories] = useState("")
+  const [manualProtein, setManualProtein] = useState("")
+  const [manualCarbs, setManualCarbs] = useState("")
+  const [manualFats, setManualFats] = useState("")
+  const [itemsAddedCount, setItemsAddedCount] = useState(0)
 
-  const [editMode, setEditMode] = useState(false);
-  const [editableData, setEditableData] = useState<AnalysisResult | null>(null);
-  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
-  const [editableItem, setEditableItem] = useState<FoodItem | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editMode, setEditMode] = useState(false)
+  const [editableData, setEditableData] = useState<AnalysisResult | null>(null)
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null)
+  const [editableItem, setEditableItem] = useState<FoodItem | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+        setImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const analyzeFood = async () => {
-    if (!image) return;
+    if (!image) return
 
-    setAnalyzing(true);
-    setError('');
+    setAnalyzing(true)
+    setError("")
 
     try {
-      const base64Image = image.split(',')[1];
+      const base64Image = image.split(",")[1]
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             contents: [
@@ -106,7 +125,7 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
                   },
                   {
                     inline_data: {
-                      mime_type: 'image/jpeg',
+                      mime_type: "image/jpeg",
                       data: base64Image,
                     },
                   },
@@ -114,46 +133,48 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
               },
             ],
           }),
-        }
-      );
+        },
+      )
 
       if (!response.ok) {
-        throw new Error('Failed to analyze image');
+        throw new Error("Failed to analyze image")
       }
 
-      const data = await response.json();
-      const content = data.candidates[0].content.parts[0].text;
+      const data = await response.json()
+      const content = data.candidates[0].content.parts[0].text
 
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format")
       }
 
-      const analysisData: AnalysisResult = JSON.parse(jsonMatch[0]);
+      const analysisData: AnalysisResult = JSON.parse(jsonMatch[0])
 
       if (!analysisData.is_food) {
-        setError(`This is ${analysisData.item_name} (${analysisData.description}). This is not a food item. Please take a photo of food to track your nutrition.`);
-        return;
+        setError(
+          `This is ${analysisData.item_name} (${analysisData.description}). This is not a food item. Please take a photo of food to track your nutrition.`,
+        )
+        return
       }
 
-      setAnalysisResult(analysisData);
+      setAnalysisResult(analysisData)
     } catch (err: any) {
-      console.error('Analysis error:', err);
-      setError(err.message || 'Failed to analyze image. Please try again.');
+      console.error("Analysis error:", err)
+      setError(err.message || "Failed to analyze image. Please try again.")
     } finally {
-      setAnalyzing(false);
+      setAnalyzing(false)
     }
-  };
+  }
 
   const handleConfirmLog = async () => {
-    if (!analysisResult) return;
+    if (!analysisResult) return
 
-    const dataToLog = editableData || analysisResult;
+    const dataToLog = editableData || analysisResult
 
     try {
-      const { error: insertError } = await supabase.from('food_logs').insert({
+      const { error: insertError } = await supabase.from("food_logs").insert({
         user_id: userId,
-        food_name: dataToLog.food_name || 'Unknown Food',
+        food_name: dataToLog.food_name || "Unknown Food",
         description: dataToLog.description || null,
         serving_size: dataToLog.serving_size || null,
         calories: dataToLog.calories,
@@ -164,54 +185,56 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
         sugar: dataToLog.sugar || 0,
         sodium: dataToLog.sodium || 0,
         image_url: image,
-      });
+      })
 
-      if (insertError) throw insertError;
+      if (insertError) throw insertError
 
-      onFoodLogged();
+      achievementService.checkAndAwardAchievements(userId).catch(console.error)
+
+      onFoodLogged()
     } catch (err: any) {
-      console.error('Error logging food:', err);
-      setError(err.message || 'Failed to log food. Please try again.');
+      console.error("Error logging food:", err)
+      setError(err.message || "Failed to log food. Please try again.")
     }
-  };
+  }
 
   const handleRetake = () => {
-    setImage(null);
-    setAnalysisResult(null);
-    setShowAlternatives(false);
-    setAlternatives([]);
-    setShowManualInput(false);
-    setManualItemName('');
-    setManualItemQuantity('');
-    setManualCalories('');
-    setManualProtein('');
-    setManualCarbs('');
-    setManualFats('');
-    setUseManualNutrition(false);
-    setItemsAddedCount(0);
-    setEditMode(false);
-    setEditableData(null);
-    setError('');
-  };
+    setImage(null)
+    setAnalysisResult(null)
+    setShowAlternatives(false)
+    setAlternatives([])
+    setShowManualInput(false)
+    setManualItemName("")
+    setManualItemQuantity("")
+    setManualCalories("")
+    setManualProtein("")
+    setManualCarbs("")
+    setManualFats("")
+    setUseManualNutrition(false)
+    setItemsAddedCount(0)
+    setEditMode(false)
+    setEditableData(null)
+    setError("")
+  }
 
   const toggleEditMode = () => {
     if (!editMode) {
-      setEditableData(analysisResult);
+      setEditableData(analysisResult)
     }
-    setEditMode(!editMode);
-  };
+    setEditMode(!editMode)
+  }
 
   const startEditingItem = (index: number, item: FoodItem) => {
-    setEditingItemIndex(index);
-    setEditableItem({ ...item });
-  };
+    setEditingItemIndex(index)
+    setEditableItem({ ...item })
+  }
 
   const saveEditedItem = () => {
-    if (editingItemIndex === null || !editableItem || !analysisResult) return;
+    if (editingItemIndex === null || !editableItem || !analysisResult) return
 
-    const updatedItems = [...(analysisResult.items || [])];
-    const oldItem = updatedItems[editingItemIndex];
-    updatedItems[editingItemIndex] = editableItem;
+    const updatedItems = [...(analysisResult.items || [])]
+    const oldItem = updatedItems[editingItemIndex]
+    updatedItems[editingItemIndex] = editableItem
 
     // Recalculate totals
     const newTotals = {
@@ -219,29 +242,29 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
       protein: analysisResult.protein - oldItem.protein + editableItem.protein,
       carbs: analysisResult.carbs - oldItem.carbs + editableItem.carbs,
       fats: analysisResult.fats - oldItem.fats + editableItem.fats,
-    };
+    }
 
     setAnalysisResult({
       ...analysisResult,
       items: updatedItems,
       ...newTotals,
-    });
+    })
 
-    setEditingItemIndex(null);
-    setEditableItem(null);
-  };
+    setEditingItemIndex(null)
+    setEditableItem(null)
+  }
 
   const cancelEditingItem = () => {
-    setEditingItemIndex(null);
-    setEditableItem(null);
-  };
+    setEditingItemIndex(null)
+    setEditableItem(null)
+  }
 
   const deleteItem = (index: number) => {
-    if (!analysisResult) return;
+    if (!analysisResult) return
 
-    const updatedItems = [...(analysisResult.items || [])];
-    const deletedItem = updatedItems[index];
-    updatedItems.splice(index, 1);
+    const updatedItems = [...(analysisResult.items || [])]
+    const deletedItem = updatedItems[index]
+    updatedItems.splice(index, 1)
 
     // Recalculate totals
     const newTotals = {
@@ -249,44 +272,44 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
       protein: analysisResult.protein - deletedItem.protein,
       carbs: analysisResult.carbs - deletedItem.carbs,
       fats: analysisResult.fats - deletedItem.fats,
-    };
+    }
 
     setAnalysisResult({
       ...analysisResult,
       items: updatedItems,
       ...newTotals,
-    });
+    })
 
     // If we were editing this item, cancel the edit
     if (editingItemIndex === index) {
-      setEditingItemIndex(null);
-      setEditableItem(null);
+      setEditingItemIndex(null)
+      setEditableItem(null)
     }
-  };
+  }
 
   const analyzeManualItem = async (keepModalOpen = false) => {
     if (!manualItemName.trim() || !manualItemQuantity.trim()) {
-      setError('Please provide both item name and quantity');
-      return;
+      setError("Please provide both item name and quantity")
+      return
     }
 
     // If using manual nutrition entry, add directly without AI analysis
     if (useManualNutrition) {
       if (!manualCalories || !manualProtein || !manualCarbs || !manualFats) {
-        setError('Please provide all nutrition values (calories, protein, carbs, fats)');
-        return;
+        setError("Please provide all nutrition values (calories, protein, carbs, fats)")
+        return
       }
 
       const newItem: FoodItem = {
         name: manualItemName.trim(),
-        calories: parseFloat(manualCalories),
-        protein: parseFloat(manualProtein),
-        carbs: parseFloat(manualCarbs),
-        fats: parseFloat(manualFats),
-      };
+        calories: Number.parseFloat(manualCalories),
+        protein: Number.parseFloat(manualProtein),
+        carbs: Number.parseFloat(manualCarbs),
+        fats: Number.parseFloat(manualFats),
+      }
 
       if (analysisResult) {
-        const updatedItems = [...(analysisResult.items || []), newItem];
+        const updatedItems = [...(analysisResult.items || []), newItem]
 
         setAnalysisResult({
           ...analysisResult,
@@ -295,30 +318,30 @@ export default function CameraCapture({ userId, onClose, onFoodLogged, userGoal 
           protein: analysisResult.protein + newItem.protein,
           carbs: analysisResult.carbs + newItem.carbs,
           fats: analysisResult.fats + newItem.fats,
-        });
+        })
       }
 
-      setItemsAddedCount(itemsAddedCount + 1);
+      setItemsAddedCount(itemsAddedCount + 1)
 
       // Reset manual input form fields
-      setManualItemName('');
-      setManualItemQuantity('');
-      setManualCalories('');
-      setManualProtein('');
-      setManualCarbs('');
-      setManualFats('');
-      
+      setManualItemName("")
+      setManualItemQuantity("")
+      setManualCalories("")
+      setManualProtein("")
+      setManualCarbs("")
+      setManualFats("")
+
       // Close modal if not keeping it open
       if (!keepModalOpen) {
-        setShowManualInput(false);
-        setUseManualNutrition(false);
-        setItemsAddedCount(0);
+        setShowManualInput(false)
+        setUseManualNutrition(false)
+        setItemsAddedCount(0)
       }
-      return;
+      return
     }
 
-    setAnalyzingManualItem(true);
-    setError('');
+    setAnalyzingManualItem(true)
+    setError("")
 
     try {
       const prompt = `Analyze the nutritional content for: "${manualItemName}" with quantity/serving: "${manualItemQuantity}".
@@ -338,14 +361,14 @@ Return ONLY a JSON object with this exact structure:
   "sodium": estimated_sodium_milligrams
 }
 
-Use realistic estimates based on standard USDA nutritional data. All macros are in grams except sodium which is in milligrams.`;
+Use realistic estimates based on standard USDA nutritional data. All macros are in grams except sodium which is in milligrams.`
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             contents: [
@@ -354,22 +377,22 @@ Use realistic estimates based on standard USDA nutritional data. All macros are 
               },
             ],
           }),
-        }
-      );
+        },
+      )
 
       if (!response.ok) {
-        throw new Error('Failed to analyze manual item');
+        throw new Error("Failed to analyze manual item")
       }
 
-      const data = await response.json();
-      const content = data.candidates[0].content.parts[0].text;
+      const data = await response.json()
+      const content = data.candidates[0].content.parts[0].text
 
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format")
       }
 
-      const itemData = JSON.parse(jsonMatch[0]);
+      const itemData = JSON.parse(jsonMatch[0])
 
       // Add the manual item to the analysis result
       if (analysisResult) {
@@ -379,9 +402,9 @@ Use realistic estimates based on standard USDA nutritional data. All macros are 
           protein: itemData.protein,
           carbs: itemData.carbs,
           fats: itemData.fats,
-        };
+        }
 
-        const updatedItems = [...(analysisResult.items || []), newItem];
+        const updatedItems = [...(analysisResult.items || []), newItem]
 
         setAnalysisResult({
           ...analysisResult,
@@ -393,36 +416,36 @@ Use realistic estimates based on standard USDA nutritional data. All macros are 
           fiber: (analysisResult.fiber || 0) + (itemData.fiber || 0),
           sugar: (analysisResult.sugar || 0) + (itemData.sugar || 0),
           sodium: (analysisResult.sodium || 0) + (itemData.sodium || 0),
-        });
+        })
       }
 
-      setItemsAddedCount(itemsAddedCount + 1);
+      setItemsAddedCount(itemsAddedCount + 1)
 
       // Reset manual input form fields
-      setManualItemName('');
-      setManualItemQuantity('');
-      
+      setManualItemName("")
+      setManualItemQuantity("")
+
       // Close modal if not keeping it open
       if (!keepModalOpen) {
-        setShowManualInput(false);
-        setItemsAddedCount(0);
+        setShowManualInput(false)
+        setItemsAddedCount(0)
       }
     } catch (err: any) {
-      console.error('Manual item analysis error:', err);
-      setError(err.message || 'Failed to analyze item. Please try again.');
+      console.error("Manual item analysis error:", err)
+      setError(err.message || "Failed to analyze item. Please try again.")
     } finally {
-      setAnalyzingManualItem(false);
+      setAnalyzingManualItem(false)
     }
-  };
+  }
 
   const generateAlternatives = async () => {
-    if (!analysisResult) return;
+    if (!analysisResult) return
 
-    setLoadingAlternatives(true);
-    setShowAlternatives(true);
+    setLoadingAlternatives(true)
+    setShowAlternatives(true)
 
     try {
-      const prompt = `Suggest 3 healthier alternatives for "${analysisResult.food_name}" that would be better for someone whose goal is ${userGoal === 'cut' ? 'weight loss (cutting)' : 'muscle gain (bulking)'}.
+      const prompt = `Suggest 3 healthier alternatives for "${analysisResult.food_name}" that would be better for someone whose goal is ${userGoal === "cut" ? "weight loss (cutting)" : "muscle gain (bulking)"}.
 
 IMPORTANT: The alternatives MUST be similar and relatable to "${analysisResult.food_name}". For example:
 - If the food is a burger, suggest healthier burger variations (turkey burger, veggie burger, lean beef burger with healthier buns)
@@ -454,14 +477,14 @@ Return ONLY a JSON array with this exact structure:
 ]
 
 For cutting: suggest similar foods with higher protein but lower calories/fats.
-For bulking: suggest similar foods with higher protein and nutrient density.`;
+For bulking: suggest similar foods with higher protein and nutrient density.`
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             contents: [
@@ -470,39 +493,36 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
               },
             ],
           }),
-        }
-      );
+        },
+      )
 
       if (!response.ok) {
-        throw new Error('Failed to generate alternatives');
+        throw new Error("Failed to generate alternatives")
       }
 
-      const data = await response.json();
-      const content = data.candidates[0].content.parts[0].text;
+      const data = await response.json()
+      const content = data.candidates[0].content.parts[0].text
 
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      const jsonMatch = content.match(/\[[\s\S]*\]/)
       if (!jsonMatch) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format")
       }
 
-      const suggestions: Alternative[] = JSON.parse(jsonMatch[0]);
-      setAlternatives(suggestions);
+      const suggestions: Alternative[] = JSON.parse(jsonMatch[0])
+      setAlternatives(suggestions)
     } catch (err: any) {
-      console.error('Error generating alternatives:', err);
-      setError(err.message || 'Failed to generate alternatives. Please try again.');
+      console.error("Error generating alternatives:", err)
+      setError(err.message || "Failed to generate alternatives. Please try again.")
     } finally {
-      setLoadingAlternatives(false);
+      setLoadingAlternatives(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <div className="flex justify-between items-center p-3 sm:p-4 bg-black/50">
         <h2 className="text-white font-semibold text-base sm:text-lg">Scan Food</h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors"
-        >
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
           <X className="w-6 h-6 text-white" />
         </button>
       </div>
@@ -536,7 +556,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
         ) : (
           <div className="w-full max-w-4xl">
             <img
-              src={image}
+              src={image || "/placeholder.svg"}
               alt="Food"
               className="w-full rounded-xl sm:rounded-2xl shadow-2xl mb-4 sm:mb-6"
             />
@@ -554,7 +574,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                     {editMode && editableData ? (
                       <input
                         type="text"
-                        value={editableData.food_name || ''}
+                        value={editableData.food_name || ""}
                         onChange={(e) => setEditableData({ ...editableData, food_name: e.target.value })}
                         className="bg-white/10 border border-white/30 rounded-lg px-3 py-1 text-white w-full"
                       />
@@ -562,24 +582,17 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                       analysisResult.food_name
                     )}
                   </h3>
-                  <button
-                    onClick={toggleEditMode}
-                    className="ml-2 p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
+                  <button onClick={toggleEditMode} className="ml-2 p-2 hover:bg-white/10 rounded-lg transition-colors">
                     <Edit3 className="w-5 h-5 text-white" />
                   </button>
                 </div>
 
                 {analysisResult.serving_size && (
-                  <p className="text-white/80 text-xs sm:text-sm mb-3">
-                    Serving: {analysisResult.serving_size}
-                  </p>
+                  <p className="text-white/80 text-xs sm:text-sm mb-3">Serving: {analysisResult.serving_size}</p>
                 )}
 
                 {analysisResult.description && (
-                  <p className="text-white/90 text-xs sm:text-sm mb-4 leading-relaxed">
-                    {analysisResult.description}
-                  </p>
+                  <p className="text-white/90 text-xs sm:text-sm mb-4 leading-relaxed">{analysisResult.description}</p>
                 )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
@@ -609,7 +622,9 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                         className="w-full bg-white/10 border border-white/30 rounded px-2 py-1 text-lg sm:text-xl font-bold text-white"
                       />
                     ) : (
-                      <div className="text-lg sm:text-xl font-bold text-white">{Math.round(analysisResult.protein)}g</div>
+                      <div className="text-lg sm:text-xl font-bold text-white">
+                        {Math.round(analysisResult.protein)}g
+                      </div>
                     )}
                   </div>
                   <div className="bg-amber-500/20 backdrop-blur-sm rounded-lg p-3 border border-amber-500/30">
@@ -647,10 +662,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                     <h4 className="text-white font-semibold text-sm sm:text-base mb-3">Individual Items:</h4>
                     <div className="space-y-2">
                       {analysisResult.items.map((item, index) => (
-                        <div
-                          key={index}
-                          className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10"
-                        >
+                        <div key={index} className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/10">
                           {editingItemIndex === index && editableItem ? (
                             <div className="space-y-3">
                               <input
@@ -666,7 +678,9 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                                   <input
                                     type="number"
                                     value={editableItem.calories}
-                                    onChange={(e) => setEditableItem({ ...editableItem, calories: Number(e.target.value) })}
+                                    onChange={(e) =>
+                                      setEditableItem({ ...editableItem, calories: Number(e.target.value) })
+                                    }
                                     className="w-full bg-white/10 border border-white/30 rounded px-2 py-1 text-white text-sm"
                                     min="0"
                                   />
@@ -676,7 +690,9 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                                   <input
                                     type="number"
                                     value={editableItem.protein}
-                                    onChange={(e) => setEditableItem({ ...editableItem, protein: Number(e.target.value) })}
+                                    onChange={(e) =>
+                                      setEditableItem({ ...editableItem, protein: Number(e.target.value) })
+                                    }
                                     className="w-full bg-white/10 border border-white/30 rounded px-2 py-1 text-white text-sm"
                                     min="0"
                                     step="0.1"
@@ -687,7 +703,9 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                                   <input
                                     type="number"
                                     value={editableItem.carbs}
-                                    onChange={(e) => setEditableItem({ ...editableItem, carbs: Number(e.target.value) })}
+                                    onChange={(e) =>
+                                      setEditableItem({ ...editableItem, carbs: Number(e.target.value) })
+                                    }
                                     className="w-full bg-white/10 border border-white/30 rounded px-2 py-1 text-white text-sm"
                                     min="0"
                                     step="0.1"
@@ -797,25 +815,35 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                         </div>
 
                         <div className="grid grid-cols-4 gap-2 mb-3">
-                          <div className={`rounded-lg p-2 text-center ${alt.calories < analysisResult.calories ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                          <div
+                            className={`rounded-lg p-2 text-center ${alt.calories < analysisResult.calories ? "bg-green-500/20 border border-green-500/30" : "bg-white/5 border border-white/10"}`}
+                          >
                             <div className="text-xs text-white/70">Cal</div>
                             <div className="text-sm font-bold text-white">{alt.calories}</div>
                             {alt.calories < analysisResult.calories && (
                               <div className="text-xs text-green-300">-{analysisResult.calories - alt.calories}</div>
                             )}
                           </div>
-                          <div className={`rounded-lg p-2 text-center ${alt.protein > analysisResult.protein ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                          <div
+                            className={`rounded-lg p-2 text-center ${alt.protein > analysisResult.protein ? "bg-green-500/20 border border-green-500/30" : "bg-white/5 border border-white/10"}`}
+                          >
                             <div className="text-xs text-white/70">Pro</div>
                             <div className="text-sm font-bold text-white">{Math.round(alt.protein)}g</div>
                             {alt.protein > analysisResult.protein && (
-                              <div className="text-xs text-green-300">+{Math.round(alt.protein - analysisResult.protein)}g</div>
+                              <div className="text-xs text-green-300">
+                                +{Math.round(alt.protein - analysisResult.protein)}g
+                              </div>
                             )}
                           </div>
-                          <div className={`rounded-lg p-2 text-center ${alt.carbs < analysisResult.carbs ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                          <div
+                            className={`rounded-lg p-2 text-center ${alt.carbs < analysisResult.carbs ? "bg-green-500/20 border border-green-500/30" : "bg-white/5 border border-white/10"}`}
+                          >
                             <div className="text-xs text-white/70">Carbs</div>
                             <div className="text-sm font-bold text-white">{Math.round(alt.carbs)}g</div>
                           </div>
-                          <div className={`rounded-lg p-2 text-center ${alt.fats < analysisResult.fats ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5 border border-white/10'}`}>
+                          <div
+                            className={`rounded-lg p-2 text-center ${alt.fats < analysisResult.fats ? "bg-green-500/20 border border-green-500/30" : "bg-white/5 border border-white/10"}`}
+                          >
                             <div className="text-xs text-white/70">Fats</div>
                             <div className="text-sm font-bold text-white">{Math.round(alt.fats)}g</div>
                           </div>
@@ -849,8 +877,8 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                       disabled={loadingAlternatives}
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-amber-500/50"
                     >
-                      <RefreshCw className={`w-4 h-4 ${loadingAlternatives ? 'animate-spin' : ''}`} />
-                      {loadingAlternatives ? 'Refreshing...' : 'Refresh Alternatives'}
+                      <RefreshCw className={`w-4 h-4 ${loadingAlternatives ? "animate-spin" : ""}`} />
+                      {loadingAlternatives ? "Refreshing..." : "Refresh Alternatives"}
                     </button>
                   </div>
                 ) : null}
@@ -898,7 +926,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                         Analyzing...
                       </>
                     ) : (
-                      'Analyze Food'
+                      "Analyze Food"
                     )}
                   </button>
                 ) : (
@@ -923,15 +951,15 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
               <h3 className="text-white font-bold text-lg">Add Item Manually</h3>
               <button
                 onClick={() => {
-                  setShowManualInput(false);
-                  setManualItemName('');
-                  setManualItemQuantity('');
-                  setManualCalories('');
-                  setManualProtein('');
-                  setManualCarbs('');
-                  setManualFats('');
-                  setUseManualNutrition(false);
-                  setError('');
+                  setShowManualInput(false)
+                  setManualItemName("")
+                  setManualItemQuantity("")
+                  setManualCalories("")
+                  setManualProtein("")
+                  setManualCarbs("")
+                  setManualFats("")
+                  setUseManualNutrition(false)
+                  setError("")
                 }}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
               >
@@ -940,13 +968,11 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
             </div>
 
             <div className="flex items-center justify-between mb-4">
-              <p className="text-white/70 text-sm">
-                Describe the item that was missed or misidentified in the photo
-              </p>
+              <p className="text-white/70 text-sm">Describe the item that was missed or misidentified in the photo</p>
               {itemsAddedCount > 0 && (
                 <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-lg px-3 py-1">
                   <span className="text-emerald-300 text-xs font-semibold">
-                    {itemsAddedCount} item{itemsAddedCount !== 1 ? 's' : ''} added
+                    {itemsAddedCount} item{itemsAddedCount !== 1 ? "s" : ""} added
                   </span>
                 </div>
               )}
@@ -954,9 +980,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
 
             <div className="space-y-4">
               <div>
-                <label className="text-white text-sm font-medium block mb-2">
-                  What is it?
-                </label>
+                <label className="text-white text-sm font-medium block mb-2">What is it?</label>
                 <input
                   type="text"
                   value={manualItemName}
@@ -967,9 +991,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium block mb-2">
-                  Quantity/Serving Size
-                </label>
+                <label className="text-white text-sm font-medium block mb-2">Quantity/Serving Size</label>
                 <input
                   type="text"
                   value={manualItemQuantity}
@@ -987,13 +1009,9 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                     onChange={(e) => setUseManualNutrition(e.target.checked)}
                     className="w-4 h-4 rounded border-white/20 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0"
                   />
-                  <span className="text-white text-sm font-medium">
-                    Enter nutrition values manually
-                  </span>
+                  <span className="text-white text-sm font-medium">Enter nutrition values manually</span>
                 </label>
-                <p className="text-white/50 text-xs mt-1 ml-7">
-                  Skip AI analysis and add exact nutrition data
-                </p>
+                <p className="text-white/50 text-xs mt-1 ml-7">Skip AI analysis and add exact nutrition data</p>
               </div>
 
               {useManualNutrition && (
@@ -1066,29 +1084,27 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
               )}
 
               {error && (
-                <div className="bg-red-500/20 border border-red-500 text-white p-3 rounded-lg text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-500/20 border border-red-500 text-white p-3 rounded-lg text-sm">{error}</div>
               )}
 
               <div className="space-y-2 pt-2">
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setShowManualInput(false);
-                      setManualItemName('');
-                      setManualItemQuantity('');
-                      setManualCalories('');
-                      setManualProtein('');
-                      setManualCarbs('');
-                      setManualFats('');
-                      setUseManualNutrition(false);
-                      setItemsAddedCount(0);
-                      setError('');
+                      setShowManualInput(false)
+                      setManualItemName("")
+                      setManualItemQuantity("")
+                      setManualCalories("")
+                      setManualProtein("")
+                      setManualCarbs("")
+                      setManualFats("")
+                      setUseManualNutrition(false)
+                      setItemsAddedCount(0)
+                      setError("")
                     }}
                     className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-3 rounded-xl transition-colors"
                   >
-                    {itemsAddedCount > 0 ? 'Done' : 'Cancel'}
+                    {itemsAddedCount > 0 ? "Done" : "Cancel"}
                   </button>
                   <button
                     onClick={() => analyzeManualItem(false)}
@@ -1096,8 +1112,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                       analyzingManualItem ||
                       !manualItemName.trim() ||
                       !manualItemQuantity.trim() ||
-                      (useManualNutrition &&
-                        (!manualCalories || !manualProtein || !manualCarbs || !manualFats))
+                      (useManualNutrition && (!manualCalories || !manualProtein || !manualCarbs || !manualFats))
                     }
                     className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
@@ -1107,7 +1122,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                         Analyzing...
                       </>
                     ) : (
-                      'Add & Close'
+                      "Add & Close"
                     )}
                   </button>
                 </div>
@@ -1118,8 +1133,7 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
                     analyzingManualItem ||
                     !manualItemName.trim() ||
                     !manualItemQuantity.trim() ||
-                    (useManualNutrition &&
-                      (!manualCalories || !manualProtein || !manualCarbs || !manualFats))
+                    (useManualNutrition && (!manualCalories || !manualProtein || !manualCarbs || !manualFats))
                   }
                   className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
@@ -1132,5 +1146,5 @@ For bulking: suggest similar foods with higher protein and nutrient density.`;
         </div>
       )}
     </div>
-  );
+  )
 }

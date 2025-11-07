@@ -1,98 +1,101 @@
-import { useState, useEffect } from 'react';
-import { supabase, UserProfile } from '../lib/supabase';
-import { User, Scale, Ruler, Target, X, TrendingUp, Save } from 'lucide-react';
+"use client"
+
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { supabase, type UserProfile, calculateNutrition } from "../lib/supabase"
+import { User, Scale, Ruler, Target, X, TrendingUp, Save } from "lucide-react"
 
 interface ProfileEditProps {
-  userId: string;
-  onClose: () => void;
-  onUpdate: () => void;
+  userId: string
+  onClose: () => void
+  onUpdate: () => void
 }
 
 export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditProps) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [age, setAge] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [goal, setGoal] = useState<'cut' | 'bulk'>('cut');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [weightHistory, setWeightHistory] = useState<Array<{ date: string; weight: number }>>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [age, setAge] = useState("")
+  const [height, setHeight] = useState("")
+  const [weight, setWeight] = useState("")
+  const [goal, setGoal] = useState<"cut" | "bulk">("cut")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [weightHistory, setWeightHistory] = useState<Array<{ date: string; weight: number }>>([])
 
   useEffect(() => {
-    loadProfile();
-  }, [userId]);
+    loadProfile()
+  }, [userId])
 
   const loadProfile = async () => {
     try {
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data } = await supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle()
 
       if (data) {
-        setProfile(data);
-        setAge(data.age.toString());
-        setHeight(data.height.toString());
-        setWeight(data.weight.toString());
-        setGoal(data.goal);
+        setProfile(data)
+        setAge(data.age.toString())
+        setHeight(data.height.toString())
+        setWeight(data.weight.toString())
+        setGoal(data.goal)
 
         const mockHistory = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
+          const date = new Date()
+          date.setDate(date.getDate() - (6 - i))
           return {
-            date: date.toISOString().split('T')[0],
+            date: date.toISOString().split("T")[0],
             weight: data.weight + (Math.random() - 0.5) * 2,
-          };
-        });
-        setWeightHistory(mockHistory);
+          }
+        })
+        setWeightHistory(mockHistory)
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error("Error loading profile:", error)
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
-      const ageNum = parseInt(age);
-      const heightNum = parseFloat(height);
-      const weightNum = parseFloat(weight);
+      const ageNum = Number.parseInt(age)
+      const heightNum = Number.parseFloat(height)
+      const weightNum = Number.parseFloat(weight)
 
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .update({
-          age: ageNum,
-          height: heightNum,
-          weight: weightNum,
-          goal,
-        })
-        .eq('id', userId);
+      let updateData: any = {
+        age: ageNum,
+        height: heightNum,
+        weight: weightNum,
+        goal,
+      }
 
-      if (updateError) throw updateError;
-      onUpdate();
-      onClose();
+      if (profile.goal !== goal) {
+        const newNutrition = calculateNutrition(weightNum, heightNum, ageNum, goal)
+        updateData = { ...updateData, ...newNutrition }
+      }
+
+      const { error: updateError } = await supabase.from("user_profiles").update(updateData).eq("id", userId)
+
+      if (updateError) throw updateError
+      onUpdate()
+      onClose()
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || "Failed to update profile")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   if (!profile) {
     return (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
         <div className="text-white text-lg">Loading...</div>
       </div>
-    );
+    )
   }
 
-  const weightChange = weightHistory.length >= 2
-    ? weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight
-    : 0;
+  const weightChange =
+    weightHistory.length >= 2 ? weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight : 0
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
@@ -103,10 +106,7 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
               <User className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
               <h2 className="text-lg sm:text-2xl font-bold text-white">Edit Profile</h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
               <X className="w-6 h-6 text-white" />
             </button>
           </div>
@@ -120,21 +120,22 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
             </h3>
             <div className="flex items-end justify-between gap-2 mb-4">
               {weightHistory.map((entry, index) => {
-                const maxWeight = Math.max(...weightHistory.map(e => e.weight));
-                const minWeight = Math.min(...weightHistory.map(e => e.weight));
-                const range = maxWeight - minWeight || 1;
-                const height = ((entry.weight - minWeight) / range) * 100 || 50;
+                const maxWeight = Math.max(...weightHistory.map((e) => e.weight))
+                const minWeight = Math.min(...weightHistory.map((e) => e.weight))
+                const range = maxWeight - minWeight || 1
+                const height = ((entry.weight - minWeight) / range) * 100 || 50
 
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center">
-                    <div className="w-full bg-blue-200 rounded-t-lg" style={{ height: `${height}px`, minHeight: '20px' }}>
+                    <div
+                      className="w-full bg-blue-200 rounded-t-lg"
+                      style={{ height: `${height}px`, minHeight: "20px" }}
+                    >
                       <div className="w-full h-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg"></div>
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {new Date(entry.date).getDate()}
-                    </div>
+                    <div className="text-xs text-gray-600 mt-1">{new Date(entry.date).getDate()}</div>
                   </div>
-                );
+                )
               })}
             </div>
             <div className="flex justify-between items-center">
@@ -144,8 +145,11 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
               </div>
               <div className="text-right">
                 <div className="text-xs sm:text-sm text-gray-600">7-Day Change</div>
-                <div className={`text-lg sm:text-xl font-bold ${weightChange >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                  {weightChange >= 0 ? '+' : ''}{weightChange.toFixed(1)} kg
+                <div
+                  className={`text-lg sm:text-xl font-bold ${weightChange >= 0 ? "text-orange-600" : "text-green-600"}`}
+                >
+                  {weightChange >= 0 ? "+" : ""}
+                  {weightChange.toFixed(1)} kg
                 </div>
               </div>
             </div>
@@ -213,11 +217,11 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
-                  onClick={() => setGoal('cut')}
+                  onClick={() => setGoal("cut")}
                   className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-                    goal === 'cut'
-                      ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300'
+                    goal === "cut"
+                      ? "border-emerald-500 bg-emerald-50 shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="text-sm sm:text-base font-semibold text-gray-800">Cut</div>
@@ -225,11 +229,11 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGoal('bulk')}
+                  onClick={() => setGoal("bulk")}
                   className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-                    goal === 'bulk'
-                      ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300'
+                    goal === "bulk"
+                      ? "border-emerald-500 bg-emerald-50 shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="text-sm sm:text-base font-semibold text-gray-800">Bulk</div>
@@ -239,9 +243,7 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
             </div>
 
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 text-red-600 p-3 rounded-xl text-sm">
-                {error}
-              </div>
+              <div className="bg-red-50 border-2 border-red-200 text-red-600 p-3 rounded-xl text-sm">{error}</div>
             )}
 
             <div className="flex gap-3 pt-2">
@@ -258,12 +260,12 @@ export default function ProfileEdit({ userId, onClose, onUpdate }: ProfileEditPr
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Save className="w-5 h-5" />
-                {loading ? 'Saving...' : 'Save Changes'}
+                {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  );
+  )
 }

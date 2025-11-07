@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Html5Qrcode } from "html5-qrcode"
 import { supabase } from "../lib/supabase"
 import { searchProductByBarcode, type ProductNutrition } from "../utils/openFoodFacts"
+import { achievementService } from "../services/achievementService"
 import {
   X,
   CheckCircle,
@@ -157,6 +158,8 @@ export default function BarcodeScanner({ userId, onClose, onFoodLogged }: Barcod
 
       if (insertError) throw insertError
 
+      achievementService.checkAndAwardAchievements(userId).catch(console.error)
+
       onFoodLogged()
     } catch (err: any) {
       console.error("Error logging food:", err)
@@ -222,6 +225,8 @@ export default function BarcodeScanner({ userId, onClose, onFoodLogged }: Barcod
       })
 
       if (insertError) throw insertError
+
+      achievementService.checkAndAwardAchievements(userId).catch(console.error)
 
       onFoodLogged()
     } catch (err: any) {

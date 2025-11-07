@@ -1,108 +1,115 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { X, Plus, Flame, Beef, Cookie, Droplet, Wheat, Candy, Sparkles, Search, Loader2 } from 'lucide-react';
-import { searchFoodByName, ProductNutrition } from '../utils/openFoodFacts';
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { supabase } from "../lib/supabase"
+import { X, Plus, Flame, Beef, Cookie, Droplet, Wheat, Candy, Sparkles, Search, Loader2 } from "lucide-react"
+import { searchFoodByName, type ProductNutrition } from "../utils/openFoodFacts"
+import { achievementService } from "../services/achievementService"
 
 interface ManualFoodEntryProps {
-  userId: string;
-  onClose: () => void;
-  onFoodLogged: () => void;
+  userId: string
+  onClose: () => void
+  onFoodLogged: () => void
 }
 
 export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: ManualFoodEntryProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [foodName, setFoodName] = useState('');
-  const [description, setDescription] = useState('');
-  const [servingSize, setServingSize] = useState('');
-  const [calories, setCalories] = useState('');
-  const [protein, setProtein] = useState('');
-  const [carbs, setCarbs] = useState('');
-  const [fats, setFats] = useState('');
-  const [fiber, setFiber] = useState('');
-  const [sugar, setSugar] = useState('');
-  const [sodium, setSodium] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<ProductNutrition[]>([]);
-  const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState("")
+  const [foodName, setFoodName] = useState("")
+  const [description, setDescription] = useState("")
+  const [servingSize, setServingSize] = useState("")
+  const [calories, setCalories] = useState("")
+  const [protein, setProtein] = useState("")
+  const [carbs, setCarbs] = useState("")
+  const [fats, setFats] = useState("")
+  const [fiber, setFiber] = useState("")
+  const [sugar, setSugar] = useState("")
+  const [sodium, setSodium] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<ProductNutrition[]>([])
+  const [error, setError] = useState("")
 
   const handleSearch = async () => {
-    const trimmedQuery = searchQuery.trim();
+    const trimmedQuery = searchQuery.trim()
 
     if (!trimmedQuery) {
-      setSearchResults([]);
-      return;
+      setSearchResults([])
+      return
     }
 
     if (trimmedQuery.length < 2) {
-      setError('Please enter at least 2 characters to search');
-      return;
+      setError("Please enter at least 2 characters to search")
+      return
     }
 
-    setSearching(true);
-    setError('');
-    setSearchResults([]);
+    setSearching(true)
+    setError("")
+    setSearchResults([])
 
     try {
-      const results = await searchFoodByName(trimmedQuery);
-      setSearchResults(results);
+      const results = await searchFoodByName(trimmedQuery)
+      setSearchResults(results)
 
       if (results.length === 0) {
-        setError('No results found. Try different keywords or enter nutritional values manually below.');
+        setError("No results found. Try different keywords or enter nutritional values manually below.")
       }
     } catch (err: any) {
-      console.error('Error searching food:', err);
-      setError('Search failed. Please try again or enter values manually below.');
+      console.error("Error searching food:", err)
+      setError("Search failed. Please try again or enter values manually below.")
     } finally {
-      setSearching(false);
+      setSearching(false)
     }
-  };
+  }
 
   const handleSelectFood = (food: ProductNutrition) => {
-    setFoodName(food.foodName);
-    setDescription(food.description);
-    setServingSize(food.servingSize);
-    setCalories(food.calories.toString());
-    setProtein(food.protein.toString());
-    setCarbs(food.carbs.toString());
-    setFats(food.fats.toString());
-    setFiber(food.fiber.toString());
-    setSugar(food.sugar.toString());
-    setSodium(food.sodium.toString());
-    setSearchResults([]);
-    setSearchQuery('');
-  };
+    setFoodName(food.foodName)
+    setDescription(food.description)
+    setServingSize(food.servingSize)
+    setCalories(food.calories.toString())
+    setProtein(food.protein.toString())
+    setCarbs(food.carbs.toString())
+    setFats(food.fats.toString())
+    setFiber(food.fiber.toString())
+    setSugar(food.sugar.toString())
+    setSodium(food.sodium.toString())
+    setSearchResults([])
+    setSearchQuery("")
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
-      const { error: insertError } = await supabase.from('food_logs').insert({
+      const { error: insertError } = await supabase.from("food_logs").insert({
         user_id: userId,
         food_name: foodName,
         description: description || null,
         serving_size: servingSize || null,
-        calories: parseInt(calories) || 0,
-        protein: parseFloat(protein) || 0,
-        carbs: parseFloat(carbs) || 0,
-        fats: parseFloat(fats) || 0,
-        fiber: parseFloat(fiber) || 0,
-        sugar: parseFloat(sugar) || 0,
-        sodium: parseFloat(sodium) || 0,
-      });
+        calories: Number.parseInt(calories) || 0,
+        protein: Number.parseFloat(protein) || 0,
+        carbs: Number.parseFloat(carbs) || 0,
+        fats: Number.parseFloat(fats) || 0,
+        fiber: Number.parseFloat(fiber) || 0,
+        sugar: Number.parseFloat(sugar) || 0,
+        sodium: Number.parseFloat(sodium) || 0,
+      })
 
-      if (insertError) throw insertError;
+      if (insertError) throw insertError
 
-      onFoodLogged();
+      achievementService.checkAndAwardAchievements(userId).catch(console.error)
+
+      onFoodLogged()
     } catch (err: any) {
-      console.error('Error logging food:', err);
-      setError(err.message || 'Failed to log food. Please try again.');
+      console.error("Error logging food:", err)
+      setError(err.message || "Failed to log food. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -113,10 +120,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
               <Plus className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
               <h2 className="text-lg sm:text-2xl font-bold text-white">Add Food Manually</h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
               <X className="w-6 h-6 text-white" />
             </button>
           </div>
@@ -124,16 +128,14 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Food Database
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Search Food Database</label>
             <p className="text-xs text-gray-500 mb-2">Search for common foods or branded products</p>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSearch())}
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                 placeholder="e.g., grilled chicken, banana, white rice"
               />
@@ -161,7 +163,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
           {searchResults.length > 0 && (
             <div className="space-y-2 bg-emerald-50 p-3 rounded-xl border-2 border-emerald-200">
               <p className="text-sm font-semibold text-emerald-800">
-                Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} - Select one:
+                Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} - Select one:
               </p>
               <div className="max-h-80 overflow-y-auto space-y-2">
                 {searchResults.map((food, index) => (
@@ -205,9 +207,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Food Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Food Name</label>
             <input
               type="text"
               value={foodName}
@@ -219,9 +219,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -232,9 +230,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Serving Size (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Serving Size (Optional)</label>
             <input
               type="text"
               value={servingSize}
@@ -367,9 +363,7 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
           </div>
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-600 p-3 rounded-xl text-sm">
-              {error}
-            </div>
+            <div className="bg-red-50 border-2 border-red-200 text-red-600 p-3 rounded-xl text-sm">{error}</div>
           )}
 
           <div className="flex gap-3 pt-2">
@@ -385,11 +379,11 @@ export default function ManualFoodEntry({ userId, onClose, onFoodLogged }: Manua
               disabled={loading}
               className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Adding...' : 'Add Food'}
+              {loading ? "Adding..." : "Add Food"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  );
+  )
 }

@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { X, User, Users, Bell, Trophy, History, LogOut, SettingsIcon } from "lucide-react"
+import { useState, useEffect } from "react"
+import { X, User, Users, Bell, Trophy, History, LogOut, SettingsIcon, Edit2 } from "lucide-react"
 import NotificationsView from "./NotificationsView"
 import SocialView from "./SocialView"
 import AchievementsView from "./AchievementsView"
 import HistoryView from "./HistoryView"
+import ProfileEdit from "./ProfileEdit"
+import { supabase, type UserProfile } from "../lib/supabase"
 
 interface SettingsSectionProps {
   userId: string
@@ -17,6 +19,28 @@ type SettingsTab = "profile" | "social" | "notifications" | "achievements" | "hi
 
 export default function SettingsSection({ userId, onClose, onLogout }: SettingsSectionProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile")
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [showProfileEdit, setShowProfileEdit] = useState(false)
+
+  useEffect(() => {
+    loadUserProfile()
+  }, [userId])
+
+  const loadUserProfile = async () => {
+    try {
+      const { data } = await supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle()
+
+      if (data) {
+        setUserProfile(data)
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error)
+    }
+  }
+
+  const handleProfileUpdate = () => {
+    loadUserProfile()
+  }
 
   const menuItems = [
     { id: "profile", label: "Personal Details", icon: User, color: "text-gray-600" },
@@ -42,8 +66,9 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
         <div className="p-6 space-y-6">
           {/* Profile Card */}
           {activeTab === "profile" && (
-            <div className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-              <div className="flex items-center gap-6 mb-8">
+            <div className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-xl transition-shadow space-y-6">
+              {/* Profile Header */}
+              <div className="flex items-center gap-6">
                 <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white">
                   <User className="w-12 h-12" />
                 </div>
@@ -53,20 +78,45 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
                 </div>
               </div>
 
-              {/* Invite Friends Card */}
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-xl mb-8">
-                <div className="relative h-48 flex items-center justify-center text-center p-8">
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="relative z-10">
-                    <Users className="w-12 h-12 text-white mx-auto mb-4" />
-                    <h3 className="text-3xl font-bold text-white mb-4">Invite friends</h3>
-                    <p className="text-lg text-white/90 mb-6">The journey is easier together.</p>
-                    <button className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-3 rounded-full font-semibold transition-all hover:shadow-lg">
-                      Refer a friend to earn $10
+              {userProfile && (
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-800">Personal Details</h3>
+                    <button
+                      onClick={() => setShowProfileEdit(true)}
+                      className="flex items-center gap-2 px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
                     </button>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-600 text-sm font-medium">Age</p>
+                      <p className="text-2xl font-bold text-gray-900">{userProfile.age}</p>
+                      <p className="text-xs text-gray-500">years</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 text-sm font-medium">Height</p>
+                      <p className="text-2xl font-bold text-gray-900">{userProfile.height}</p>
+                      <p className="text-xs text-gray-500">cm</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 text-sm font-medium">Weight</p>
+                      <p className="text-2xl font-bold text-gray-900">{userProfile.weight}</p>
+                      <p className="text-xs text-gray-500">kg</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 text-sm font-medium">Goal</p>
+                      <p className="text-2xl font-bold text-gray-900 capitalize">{userProfile.goal}</p>
+                      <p className="text-xs text-gray-500">
+                        {userProfile.goal === "bulk" ? "Muscle Gain" : "Weight Loss"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Settings Menu */}
               <div className="space-y-0">
@@ -85,7 +135,7 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
               {/* Logout Button */}
               <button
                 onClick={onLogout}
-                className="w-full flex items-center gap-4 p-4 text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-6 font-medium"
+                className="w-full flex items-center gap-4 p-4 text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium"
               >
                 <LogOut className="w-6 h-6" />
                 <span className="text-lg">Logout</span>
@@ -146,6 +196,10 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
           )}
         </div>
       </div>
+
+      {showProfileEdit && (
+        <ProfileEdit userId={userId} onClose={() => setShowProfileEdit(false)} onUpdate={handleProfileUpdate} />
+      )}
     </div>
   )
 }
