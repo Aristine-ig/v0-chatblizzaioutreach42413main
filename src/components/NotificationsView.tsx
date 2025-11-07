@@ -1,105 +1,165 @@
-import { useState, useEffect } from 'react';
-import { Bell, Trash2, Check, Settings } from 'lucide-react';
-import { notificationService, Notification } from '../services/notificationService';
+"use client"
+
+import { useState, useEffect } from "react"
+import { Bell, Trash2, Check, Settings } from "lucide-react"
+import { notificationService, type Notification } from "../services/notificationService"
 
 interface NotificationsViewProps {
-  userId: string;
+  userId: string
+  inline?: boolean // Added inline prop to support embedding in Settings
 }
 
-export default function NotificationsView({ userId }: NotificationsViewProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showPreferences, setShowPreferences] = useState(false);
-  const [preferences, setPreferences] = useState<any>(null);
+export default function NotificationsView({ userId, inline = false }: NotificationsViewProps) {
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showPreferences, setShowPreferences] = useState(false)
+  const [preferences, setPreferences] = useState<any>(null)
 
   useEffect(() => {
-    loadNotifications();
-    loadPreferences();
-  }, [userId]);
+    loadNotifications()
+    loadPreferences()
+  }, [userId])
 
   const loadNotifications = async () => {
     try {
-      setLoading(true);
-      const data = await notificationService.getNotifications(userId);
-      setNotifications(data);
+      setLoading(true)
+      const data = await notificationService.getNotifications(userId)
+      setNotifications(data)
     } catch (error) {
-      console.error('Error loading notifications:', error);
+      console.error("Error loading notifications:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const loadPreferences = async () => {
     try {
-      const prefs = await notificationService.getPreferences(userId);
+      const prefs = await notificationService.getPreferences(userId)
       if (!prefs) {
-        await notificationService.initializePreferences(userId);
-        loadPreferences();
+        await notificationService.initializePreferences(userId)
+        loadPreferences()
       } else {
-        setPreferences(prefs);
+        setPreferences(prefs)
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      console.error("Error loading preferences:", error)
     }
-  };
+  }
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await notificationService.markAsRead(id);
-      setNotifications(notifications.map(n =>
-        n.id === id ? { ...n, read: true } : n
-      ));
+      await notificationService.markAsRead(id)
+      setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)))
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error)
     }
-  };
+  }
 
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationService.markAllAsRead(userId);
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      await notificationService.markAllAsRead(userId)
+      setNotifications(notifications.map((n) => ({ ...n, read: true })))
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error("Error marking all as read:", error)
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     try {
-      await notificationService.deleteNotification(id);
-      setNotifications(notifications.filter(n => n.id !== id));
+      await notificationService.deleteNotification(id)
+      setNotifications(notifications.filter((n) => n.id !== id))
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      console.error("Error deleting notification:", error)
     }
-  };
+  }
 
   const handleUpdatePreferences = async () => {
     try {
-      await notificationService.updatePreferences(userId, preferences);
-      setShowPreferences(false);
+      await notificationService.updatePreferences(userId, preferences)
+      setShowPreferences(false)
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error("Error updating preferences:", error)
     }
-  };
+  }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'follow':
-        return '👤';
-      case 'meal_shared':
-        return '🍽️';
-      case 'reaction':
-        return '❤️';
-      case 'meal_reminder':
-        return '⏰';
-      case 'hydration_reminder':
-        return '💧';
+      case "follow":
+        return "👤"
+      case "meal_shared":
+        return "🍽️"
+      case "reaction":
+        return "❤️"
+      case "meal_reminder":
+        return "⏰"
+      case "hydration_reminder":
+        return "💧"
       default:
-        return '🔔';
+        return "🔔"
     }
-  };
+  }
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length
 
+  if (inline) {
+    return (
+      <div className="space-y-4">
+        {unreadCount > 0 && (
+          <button onClick={handleMarkAllAsRead} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm">
+            Mark all as read
+          </button>
+        )}
+
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="text-center py-12">
+            <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600">No notifications yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`rounded-xl p-4 transition ${
+                  notification.read ? "bg-white border border-gray-200" : "bg-emerald-50 border border-emerald-200"
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <span className="text-2xl">{getNotificationIcon(notification.type)}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800">{notification.title}</h3>
+                    <p className="text-gray-600 text-sm mt-1">{notification.message}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!notification.read && (
+                      <button
+                        onClick={() => handleMarkAsRead(notification.id)}
+                        className="p-2 hover:bg-emerald-100 rounded-lg transition"
+                      >
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(notification.id)}
+                      className="p-2 hover:bg-red-100 rounded-lg transition"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Original full-screen layout
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
       <div className="max-w-2xl mx-auto">
@@ -129,10 +189,12 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                 <input
                   type="checkbox"
                   checked={preferences.meal_reminders_enabled}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    meal_reminders_enabled: e.target.checked
-                  })}
+                  onChange={(e) =>
+                    setPreferences({
+                      ...preferences,
+                      meal_reminders_enabled: e.target.checked,
+                    })
+                  }
                   className="w-4 h-4 rounded"
                 />
                 <span className="text-gray-700">Meal Reminders</span>
@@ -144,10 +206,12 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                   <input
                     type="time"
                     value={preferences.meal_reminders_time}
-                    onChange={(e) => setPreferences({
-                      ...preferences,
-                      meal_reminders_time: e.target.value
-                    })}
+                    onChange={(e) =>
+                      setPreferences({
+                        ...preferences,
+                        meal_reminders_time: e.target.value,
+                      })
+                    }
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -157,10 +221,12 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                 <input
                   type="checkbox"
                   checked={preferences.hydration_reminders_enabled}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    hydration_reminders_enabled: e.target.checked
-                  })}
+                  onChange={(e) =>
+                    setPreferences({
+                      ...preferences,
+                      hydration_reminders_enabled: e.target.checked,
+                    })
+                  }
                   className="w-4 h-4 rounded"
                 />
                 <span className="text-gray-700">Hydration Reminders</span>
@@ -170,10 +236,12 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                 <input
                   type="checkbox"
                   checked={preferences.follow_notifications_enabled}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    follow_notifications_enabled: e.target.checked
-                  })}
+                  onChange={(e) =>
+                    setPreferences({
+                      ...preferences,
+                      follow_notifications_enabled: e.target.checked,
+                    })
+                  }
                   className="w-4 h-4 rounded"
                 />
                 <span className="text-gray-700">New Follower Notifications</span>
@@ -183,10 +251,12 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                 <input
                   type="checkbox"
                   checked={preferences.reaction_notifications_enabled}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    reaction_notifications_enabled: e.target.checked
-                  })}
+                  onChange={(e) =>
+                    setPreferences({
+                      ...preferences,
+                      reaction_notifications_enabled: e.target.checked,
+                    })
+                  }
                   className="w-4 h-4 rounded"
                 />
                 <span className="text-gray-700">Meal Reaction Notifications</span>
@@ -231,13 +301,11 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.map(notification => (
+            {notifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`rounded-xl p-4 transition ${
-                  notification.read
-                    ? 'bg-white border border-gray-200'
-                    : 'bg-emerald-50 border border-emerald-200'
+                  notification.read ? "bg-white border border-gray-200" : "bg-emerald-50 border border-emerald-200"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -246,7 +314,8 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                     <h3 className="font-semibold text-gray-800">{notification.title}</h3>
                     <p className="text-gray-600 text-sm mt-1">{notification.message}</p>
                     <p className="text-gray-500 text-xs mt-2">
-                      {new Date(notification.created_at).toLocaleDateString()} {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(notification.created_at).toLocaleDateString()}{" "}
+                      {new Date(notification.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -274,5 +343,5 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
         )}
       </div>
     </div>
-  );
+  )
 }

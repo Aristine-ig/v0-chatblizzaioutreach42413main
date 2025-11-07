@@ -23,8 +23,6 @@ import {
   Lightbulb,
   ScanLine,
   Menu,
-  Bell,
-  Users,
   Trophy,
 } from "lucide-react"
 import CameraCapture from "./CameraCapture"
@@ -37,10 +35,11 @@ import ExportView from "./ExportView"
 import MealRecommendations from "./MealRecommendations"
 import HealthierAlternatives from "./HealthierAlternatives"
 import BarcodeScanner from "./BarcodeScanner"
+import SettingsSection from "./SettingsSection"
 import NotificationsView from "./NotificationsView"
 import SocialView from "./SocialView"
-import StreakTracker from "./StreakTracker"
 import AchievementsView from "./AchievementsView"
+import StreakTracker from "./StreakTracker"
 import { achievementService } from "../services/achievementService"
 
 interface DashboardProps {
@@ -74,6 +73,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     carbs: 0,
     fats: 0,
   })
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -307,6 +307,10 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     return <AchievementsView userId={userId} onClose={() => setShowAchievements(false)} />
   }
 
+  if (showSettings) {
+    return <SettingsSection userId={userId} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50">
       <div className="max-w-4xl mx-auto p-3 sm:p-4 pb-28 sm:pb-24">
@@ -329,39 +333,11 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
             <button
-              onClick={() => setShowAchievements(true)}
+              onClick={() => setShowSettings(true)}
               className="p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="Achievements"
+              title="Settings"
             >
-              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-            </button>
-            <button
-              onClick={() => setShowNotifications(true)}
-              className="p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="Notifications"
-            >
-              <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
-            </button>
-            <button
-              onClick={() => setShowSocial(true)}
-              className="p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="Social"
-            >
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
-            </button>
-            <button
-              onClick={() => setShowHistory(true)}
-              className="hidden sm:block p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="View History"
-            >
-              <History className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+              <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
             </button>
           </div>
         </div>

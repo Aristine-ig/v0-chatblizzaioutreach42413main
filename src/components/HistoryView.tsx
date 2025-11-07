@@ -1,60 +1,63 @@
-import { useState, useEffect } from 'react';
-import { supabase, FoodLog } from '../lib/supabase';
-import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
+"use client"
+
+import { useState, useEffect } from "react"
+import { supabase, type FoodLog } from "../lib/supabase"
+import { Calendar, X, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface HistoryViewProps {
-  userId: string;
-  onClose: () => void;
+  userId: string
+  onClose?: () => void
+  inline?: boolean
 }
 
 interface DailyStats {
-  date: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  meals: number;
+  date: string
+  calories: number
+  protein: number
+  carbs: number
+  fats: number
+  meals: number
 }
 
-export default function HistoryView({ userId, onClose }: HistoryViewProps) {
-  const [view, setView] = useState<'week' | 'month'>('week');
-  const [history, setHistory] = useState<DailyStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
+export default function HistoryView({ userId, onClose, inline = false }: HistoryViewProps) {
+  const [view, setView] = useState<"week" | "month">("week")
+  const [history, setHistory] = useState<DailyStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentDate, setCurrentDate] = useState(new Date())
 
   useEffect(() => {
-    loadHistory();
-  }, [userId, view, currentDate]);
+    loadHistory()
+  }, [userId, view, currentDate])
 
   const loadHistory = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const endDate = new Date(currentDate);
-      endDate.setHours(23, 59, 59, 999);
+      const endDate = new Date(currentDate)
+      endDate.setHours(23, 59, 59, 999)
 
-      const startDate = new Date(currentDate);
-      if (view === 'week') {
-        startDate.setDate(startDate.getDate() - 6);
+      const startDate = new Date(currentDate)
+      if (view === "week") {
+        startDate.setDate(startDate.getDate() - 6)
       } else {
-        startDate.setDate(startDate.getDate() - 29);
+        startDate.setDate(startDate.getDate() - 29)
       }
-      startDate.setHours(0, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0)
 
       const { data } = await supabase
-        .from('food_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('logged_at', startDate.toISOString())
-        .lte('logged_at', endDate.toISOString())
-        .order('logged_at', { ascending: true });
+        .from("food_logs")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("logged_at", startDate.toISOString())
+        .lte("logged_at", endDate.toISOString())
+        .order("logged_at", { ascending: true })
 
-      const dailyStats: { [key: string]: DailyStats } = {};
+      const dailyStats: { [key: string]: DailyStats } = {}
 
-      const days = view === 'week' ? 7 : 30;
+      const days = view === "week" ? 7 : 30
       for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(currentDate);
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const date = new Date(currentDate)
+        date.setDate(date.getDate() - i)
+        const dateStr = date.toISOString().split("T")[0]
         dailyStats[dateStr] = {
           date: dateStr,
           calories: 0,
@@ -62,73 +65,130 @@ export default function HistoryView({ userId, onClose }: HistoryViewProps) {
           carbs: 0,
           fats: 0,
           meals: 0,
-        };
+        }
       }
 
       data?.forEach((log: FoodLog) => {
-        const dateStr = log.logged_at.split('T')[0];
+        const dateStr = log.logged_at.split("T")[0]
         if (dailyStats[dateStr]) {
-          dailyStats[dateStr].calories += log.calories;
-          dailyStats[dateStr].protein += log.protein;
-          dailyStats[dateStr].carbs += log.carbs;
-          dailyStats[dateStr].fats += log.fats;
-          dailyStats[dateStr].meals += 1;
+          dailyStats[dateStr].calories += log.calories
+          dailyStats[dateStr].protein += log.protein
+          dailyStats[dateStr].carbs += log.carbs
+          dailyStats[dateStr].fats += log.fats
+          dailyStats[dateStr].meals += 1
         }
-      });
+      })
 
-      setHistory(Object.values(dailyStats));
+      setHistory(Object.values(dailyStats))
     } catch (error) {
-      console.error('Error loading history:', error);
+      console.error("Error loading history:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const goToPrevious = () => {
-    const newDate = new Date(currentDate);
-    if (view === 'week') {
-      newDate.setDate(newDate.getDate() - 7);
+    const newDate = new Date(currentDate)
+    if (view === "week") {
+      newDate.setDate(newDate.getDate() - 7)
     } else {
-      newDate.setDate(newDate.getDate() - 30);
+      newDate.setDate(newDate.getDate() - 30)
     }
-    setCurrentDate(newDate);
-  };
+    setCurrentDate(newDate)
+  }
 
   const goToNext = () => {
-    const newDate = new Date(currentDate);
-    const today = new Date();
+    const newDate = new Date(currentDate)
+    const today = new Date()
 
-    if (view === 'week') {
-      newDate.setDate(newDate.getDate() + 7);
+    if (view === "week") {
+      newDate.setDate(newDate.getDate() + 7)
     } else {
-      newDate.setDate(newDate.getDate() + 30);
+      newDate.setDate(newDate.getDate() + 30)
     }
 
     if (newDate <= today) {
-      setCurrentDate(newDate);
+      setCurrentDate(newDate)
     }
-  };
+  }
 
-  const totalCalories = history.reduce((sum, day) => sum + day.calories, 0);
-  const avgCalories = history.length > 0 ? Math.round(totalCalories / history.length) : 0;
-  const totalMeals = history.reduce((sum, day) => sum + day.meals, 0);
+  const totalCalories = history.reduce((sum, day) => sum + day.calories, 0)
+  const avgCalories = history.length > 0 ? Math.round(totalCalories / history.length) : 0
+  const totalMeals = history.reduce((sum, day) => sum + day.meals, 0)
 
-  const maxCalories = Math.max(...history.map(d => d.calories), 1);
+  const maxCalories = Math.max(...history.map((d) => d.calories), 1)
 
   const isToday = (dateStr: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    return dateStr === today;
-  };
+    const today = new Date().toISOString().split("T")[0]
+    return dateStr === today
+  }
 
   const canGoNext = () => {
-    const nextDate = new Date(currentDate);
-    if (view === 'week') {
-      nextDate.setDate(nextDate.getDate() + 7);
+    const nextDate = new Date(currentDate)
+    if (view === "week") {
+      nextDate.setDate(nextDate.getDate() + 7)
     } else {
-      nextDate.setDate(nextDate.getDate() + 30);
+      nextDate.setDate(nextDate.getDate() + 30)
     }
-    return nextDate <= new Date();
-  };
+    return nextDate <= new Date()
+  }
+
+  if (inline) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={goToPrevious} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+            <ChevronLeft className="w-6 h-6 text-gray-600" />
+          </button>
+          <div className="text-center">
+            <div className="text-sm text-gray-600">{view === "week" ? "Last 7 Days" : "Last 30 Days"}</div>
+          </div>
+          <button
+            onClick={goToNext}
+            disabled={!canGoNext()}
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-30"
+          >
+            <ChevronRight className="w-6 h-6 text-gray-600" />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading...</div>
+        ) : (
+          <div className="space-y-2">
+            {history.map((day) => {
+              const barHeight = maxCalories > 0 ? (day.calories / maxCalories) * 100 : 0
+              const date = new Date(day.date)
+              const dayName = date.toLocaleDateString("en-US", { weekday: "short" })
+              const dayNum = date.getDate()
+
+              return (
+                <div
+                  key={day.date}
+                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gray-50 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-800">
+                        {dayName}, {dayNum}
+                      </div>
+                      <div className="text-xs text-gray-600">{day.meals} meals</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-base font-bold text-gray-800">{day.calories} kcal</div>
+                      <div className="text-xs text-gray-600">
+                        P: {Math.round(day.protein)}g | C: {Math.round(day.carbs)}g
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
@@ -139,31 +199,26 @@ export default function HistoryView({ userId, onClose }: HistoryViewProps) {
               <Calendar className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
               <h2 className="text-lg sm:text-2xl font-bold text-white">Nutrition History</h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
+            {onClose && (
+              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+                <X className="w-6 h-6 text-white" />
+              </button>
+            )}
           </div>
 
           <div className="flex gap-2 mt-3 sm:mt-4">
             <button
-              onClick={() => setView('week')}
+              onClick={() => setView("week")}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-sm sm:text-base font-medium transition-all ${
-                view === 'week'
-                  ? 'bg-white text-emerald-600 shadow-lg'
-                  : 'bg-white/20 text-white hover:bg-white/30'
+                view === "week" ? "bg-white text-emerald-600 shadow-lg" : "bg-white/20 text-white hover:bg-white/30"
               }`}
             >
               Week
             </button>
             <button
-              onClick={() => setView('month')}
+              onClick={() => setView("month")}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-sm sm:text-base font-medium transition-all ${
-                view === 'month'
-                  ? 'bg-white text-emerald-600 shadow-lg'
-                  : 'bg-white/20 text-white hover:bg-white/30'
+                view === "month" ? "bg-white text-emerald-600 shadow-lg" : "bg-white/20 text-white hover:bg-white/30"
               }`}
             >
               Month
@@ -173,16 +228,11 @@ export default function HistoryView({ userId, onClose }: HistoryViewProps) {
 
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={goToPrevious}
-              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-            >
+            <button onClick={goToPrevious} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
               <ChevronLeft className="w-6 h-6 text-gray-600" />
             </button>
             <div className="text-center">
-              <div className="text-sm text-gray-600">
-                {view === 'week' ? 'Last 7 Days' : 'Last 30 Days'}
-              </div>
+              <div className="text-sm text-gray-600">{view === "week" ? "Last 7 Days" : "Last 30 Days"}</div>
             </div>
             <button
               onClick={goToNext}
@@ -216,18 +266,18 @@ export default function HistoryView({ userId, onClose }: HistoryViewProps) {
           ) : (
             <div className="space-y-2">
               {history.map((day) => {
-                const barHeight = maxCalories > 0 ? (day.calories / maxCalories) * 100 : 0;
-                const date = new Date(day.date);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                const dayNum = date.getDate();
+                const barHeight = maxCalories > 0 ? (day.calories / maxCalories) * 100 : 0
+                const date = new Date(day.date)
+                const dayName = date.toLocaleDateString("en-US", { weekday: "short" })
+                const dayNum = date.getDate()
 
                 return (
                   <div
                     key={day.date}
                     className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:shadow-md ${
                       isToday(day.date)
-                        ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200'
-                        : 'bg-gray-50'
+                        ? "bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200"
+                        : "bg-gray-50"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2 gap-2">
@@ -256,12 +306,12 @@ export default function HistoryView({ userId, onClose }: HistoryViewProps) {
                       />
                     </div>
                   </div>
-                );
+                )
               })}
             </div>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
