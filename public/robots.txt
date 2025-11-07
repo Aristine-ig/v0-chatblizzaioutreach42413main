@@ -1,0 +1,15 @@
+# NutriTrack - AI-Powered Nutrition Tracker
+# Allow all search engines to crawl
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://nutritrack.app/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
+
+# Block access to sensitive or admin paths (if any in the future)
+Disallow: /api/
+Disallow: /admin/

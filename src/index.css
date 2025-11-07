@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand colors */
+    --emerald-50: 236 253 245;
+    --emerald-100: 209 250 229;
+    --emerald-500: 16 185 129;
+    --emerald-600: 5 150 105;
+    --emerald-700: 4 120 87;
+    
+    --teal-50: 240 253 250;
+    --teal-100: 204 251 241;
+    --teal-500: 20 184 166;
+    --teal-600: 13 148 136;
+    
+    /* Macro colors */
+    --calories-from: 251 146 60;
+    --calories-to: 249 115 22;
+    --protein-from: 239 68 68;
+    --protein-to: 220 38 38;
+    --carbs-from: 251 191 36;
+    --carbs-to: 245 158 11;
+    --fats-from: 59 130 246;
+    --fats-to: 37 99 235;
+  }
+}
