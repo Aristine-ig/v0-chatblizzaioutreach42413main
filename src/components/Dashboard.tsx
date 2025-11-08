@@ -19,6 +19,7 @@ import {
   Menu,
   Trophy,
   Home,
+  BarChart3,
 } from "lucide-react"
 import CameraCapture from "./CameraCapture"
 import HistoryView from "./HistoryView"
@@ -636,7 +637,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 currentPage === "progress" ? "text-gray-700" : "text-gray-400"
               }`}
             >
-              <TrendingUp className="w-7 h-7" strokeWidth={1.5} />
+              <BarChart3 className="w-7 h-7" strokeWidth={1.5} />
               <span className={`text-sm ${currentPage === "progress" ? "font-semibold" : "font-medium"}`}>
                 Progress
               </span>
@@ -693,7 +694,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 }}
                 className="w-full flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-teal-100 hover:from-emerald-100 hover:to-teal-200 rounded-xl transition-all border-2 border-emerald-200"
               >
-                <TrendingUp className="w-6 h-6 text-emerald-600" />
+                <BarChart3 className="w-6 h-6 text-emerald-600" />
                 <span className="font-medium text-emerald-800">Progress</span>
               </button>
 
