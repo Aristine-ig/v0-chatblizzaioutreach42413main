@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Menu,
   Trophy,
+  Home,
 } from "lucide-react"
 import CameraCapture from "./CameraCapture"
 import HistoryView from "./HistoryView"
@@ -67,7 +68,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     carbs: 0,
     fats: 0,
   })
-  const [showSettings, setShowSettings] = useState(false)
+  const [currentPage, setCurrentPage] = useState<"home" | "progress" | "settings">("home")
   const [achievementNotifications, setAchievementNotifications] = useState<UserAchievement[]>([])
   const [showProgress, setShowProgress] = useState(false)
 
@@ -297,15 +298,15 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     return <AchievementsView userId={userId} onClose={() => setShowAchievements(false)} />
   }
 
-  if (showSettings) {
-    return <SettingsSection userId={userId} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
+  if (currentPage === "settings") {
+    return <SettingsSection userId={userId} onClose={() => setCurrentPage("home")} onLogout={handleLogout} />
   }
 
-  if (showProgress && profile) {
+  if (currentPage === "progress" && profile) {
     return (
       <ProgressSection
         userId={userId}
-        onClose={() => setShowProgress(false)}
+        onClose={() => setCurrentPage("home")}
         remainingCalories={profile.daily_calories - todayCalories}
         remainingProtein={profile.daily_protein - todayProtein}
         remainingCarbs={profile.daily_carbs - todayCarbs}
@@ -317,7 +318,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100 glass-bg">
       {achievementNotifications.map((achievement, index) => (
         <AchievementNotification
           key={achievement.id}
@@ -342,17 +343,10 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
           <div className="flex gap-1 sm:gap-2">
             <button
               onClick={() => setShowMobileSidebar(true)}
-              className="sm:hidden p-1.5 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
+              className="sm:hidden p-1.5 glass-effect rounded-xl transition-all shadow-lg hover:shadow-xl"
               title="Open Menu"
             >
               <Menu className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-1.5 sm:p-2 hover:bg-white/80 rounded-xl transition-all shadow-sm hover:shadow-md"
-              title="Settings"
-            >
-              <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
             </button>
           </div>
         </div>
@@ -363,13 +357,13 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
         <StreakTracker userId={userId} />
 
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6 transition-all hover:shadow-2xl">
+        <div className="glass-effect rounded-3xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6 transition-all hover:shadow-2xl">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Daily Goals</h2>
             <div className="hidden sm:flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
               <button
                 onClick={handleOpenGoalEditor}
-                className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md"
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-md hover:shadow-lg"
                 title="Edit daily goals"
               >
                 <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -379,7 +373,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
           </div>
 
           <div className="space-y-4 sm:space-y-5">
-            <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-lg border border-gray-100">
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-7 shadow-lg border border-white/60">
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2 mb-1">
@@ -389,9 +383,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                   <p className="text-sm sm:text-base text-gray-600 mt-3">Calories eaten</p>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     {profile.daily_calories - todayCalories > 0
-                      ? `+${profile.daily_calories - todayCalories}`
-                      : `${todayCalories - profile.daily_calories}`}{" "}
-                    remaining
+                      ? `${profile.daily_calories - todayCalories} left`
+                      : `${todayCalories - profile.daily_calories} over`}
                   </p>
                 </div>
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
@@ -426,7 +419,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             </div>
 
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
-              <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayProtein)}</span>
@@ -464,7 +457,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayCarbs)}</span>
@@ -496,13 +489,13 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Cookie className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600" />
+                      <Cookie className="w-6 h-6 sm:w-7 sm:h-7 text-amber-600" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayFats)}</span>
@@ -543,7 +536,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
             <button
               onClick={handleOpenGoalEditor}
-              className="flex sm:hidden items-center justify-center gap-2 w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all text-xs font-medium shadow-sm hover:shadow-md"
+              className="flex sm:hidden items-center justify-center gap-2 w-full px-3 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl transition-all text-xs font-medium shadow-md hover:shadow-lg"
               title="Edit daily goals"
             >
               <Settings className="w-3.5 h-3.5" />
@@ -553,7 +546,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
         </div>
 
         {todayLogs.length > 0 && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6 transition-all hover:shadow-2xl">
+          <div className="glass-effect rounded-3xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6 transition-all hover:shadow-2xl">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Today's Meals</h2>
             <div className="space-y-3 sm:space-y-4">
               <div>
@@ -561,7 +554,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                   {todayLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl group hover:shadow-md transition-all"
+                      className="flex justify-between items-center p-3 sm:p-4 bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl group hover:shadow-lg transition-all border border-white/40"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
                         {log.image_url && (
@@ -615,6 +608,50 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
         )}
       </div>
 
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 z-40 shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+          {/* Navigation items container with equal flex */}
+          <div className="flex-1 flex items-center">
+            <button
+              onClick={() => setCurrentPage("home")}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all ${
+                currentPage === "home" ? "text-gray-700" : "text-gray-400"
+              }`}
+            >
+              <Home className="w-7 h-7" strokeWidth={1.5} />
+              <span className={`text-sm ${currentPage === "home" ? "font-semibold" : "font-medium"}`}>Home</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentPage("progress")}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all ${
+                currentPage === "progress" ? "text-gray-700" : "text-gray-400"
+              }`}
+            >
+              <TrendingUp className="w-7 h-7" strokeWidth={1.5} />
+              <span className={`text-sm ${currentPage === "progress" ? "font-semibold" : "font-medium"}`}>
+                Progress
+              </span>
+            </button>
+
+            <button
+              onClick={() => setCurrentPage("settings")}
+              className={`flex-1 flex flex-col items-center gap-1 transition-all ${
+                currentPage === "settings" ? "text-gray-700" : "text-gray-400"
+              }`}
+            >
+              <Settings className="w-7 h-7" strokeWidth={1.5} />
+              <span className={`text-sm ${currentPage === "settings" ? "font-semibold" : "font-medium"}`}>
+                Settings
+              </span>
+            </button>
+          </div>
+
+          {/* Spacer for + button */}
+          <div className="w-16" />
+        </div>
+      </div>
+
       <AddFoodMenu
         onCameraClick={() => setShowCamera(true)}
         onBarcodeClick={() => setShowBarcodeScanner(true)}
@@ -643,7 +680,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             <div className="p-4 space-y-3">
               <button
                 onClick={() => {
-                  setShowProgress(true)
+                  setCurrentPage("progress")
                   setShowMobileSidebar(false)
                 }}
                 className="w-full flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-teal-100 hover:from-emerald-100 hover:to-teal-200 rounded-xl transition-all border-2 border-emerald-200"
@@ -741,7 +778,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
       {showGoalEditor && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 w-full max-w-md">
+          <div className="glass-effect rounded-3xl shadow-2xl p-5 sm:p-6 w-full max-w-md">
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Edit Daily Goals</h3>
 
             <div className="space-y-4">

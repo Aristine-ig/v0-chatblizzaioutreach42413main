@@ -53,9 +53,9 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
   ]
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 flex justify-between items-center p-6 rounded-t-3xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100 glass-bg pb-24">
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 flex justify-between items-center p-6 rounded-3xl mb-6 z-10">
           <div className="flex items-center gap-3">
             <SettingsIcon className="w-6 h-6 text-gray-600" />
             <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
