@@ -376,16 +376,11 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             <div className="bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-7 shadow-lg border border-white/60">
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-4xl sm:text-5xl font-bold text-gray-900">{todayCalories}</span>
-                    <span className="text-xl sm:text-2xl text-gray-400 font-medium">/{profile.daily_calories}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-bold text-gray-900">{todayCalories}</span>
+                    <span className="text-lg sm:text-xl text-gray-400 font-medium">/{profile.daily_calories}</span>
                   </div>
-                  <p className="text-sm sm:text-base text-gray-600 mt-3">Calories eaten</p>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    {profile.daily_calories - todayCalories > 0
-                      ? `${profile.daily_calories - todayCalories} left`
-                      : `${todayCalories - profile.daily_calories} over`}
-                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">Calories eaten</p>
                 </div>
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
@@ -412,7 +407,9 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Flame className="w-8 h-8 sm:w-10 sm:h-10 text-gray-800" />
+                    <div className="bg-gray-100 rounded-full p-2">
+                      <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -421,17 +418,17 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
               <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayProtein)}</span>
-                    <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_protein}g</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg sm:text-xl font-bold text-gray-900">{Math.round(todayProtein)}</span>
+                    <span className="text-[10px] sm:text-xs text-gray-400 font-medium">/{profile.daily_protein}g</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2">Protein eaten</p>
-                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 mt-auto self-center">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mb-2">Protein eaten</p>
+                  <div className="relative w-16 h-16 sm:w-18 sm:h-18 mt-auto self-center">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
@@ -440,18 +437,20 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
-                        strokeDasharray={`${2 * Math.PI * 24}`}
-                        strokeDashoffset={`${2 * Math.PI * 24 * (1 - Math.min(todayProtein / profile.daily_protein, 1))}`}
+                        strokeDasharray={`${2 * Math.PI * 28}`}
+                        strokeDashoffset={`${2 * Math.PI * 28 * (1 - Math.min(todayProtein / profile.daily_protein, 1))}`}
                         className="text-red-500 transition-all duration-500"
-                        strokeLinecap="round"
+                        strokeLinecap="butt"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Beef className="w-6 h-6 sm:w-7 sm:h-7 text-red-600" />
+                      <div className="bg-gray-100 rounded-full p-1.5">
+                        <Beef className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -459,17 +458,17 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
               <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayCarbs)}</span>
-                    <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_carbs}g</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg sm:text-xl font-bold text-gray-900">{Math.round(todayCarbs)}</span>
+                    <span className="text-[10px] sm:text-xs text-gray-400 font-medium">/{profile.daily_carbs}g</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2">Carbs eaten</p>
-                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 mt-auto self-center">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mb-2">Carbs eaten</p>
+                  <div className="relative w-16 h-16 sm:w-18 sm:h-18 mt-auto self-center">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
@@ -478,18 +477,20 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
-                        strokeDasharray={`${2 * Math.PI * 24}`}
-                        strokeDashoffset={`${2 * Math.PI * 24 * (1 - Math.min(todayCarbs / profile.daily_carbs, 1))}`}
+                        strokeDasharray={`${2 * Math.PI * 28}`}
+                        strokeDashoffset={`${2 * Math.PI * 28 * (1 - Math.min(todayCarbs / profile.daily_carbs, 1))}`}
                         className="text-orange-500 transition-all duration-500"
-                        strokeLinecap="round"
+                        strokeLinecap="butt"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Cookie className="w-6 h-6 sm:w-7 sm:h-7 text-amber-600" />
+                      <div className="bg-gray-100 rounded-full p-1.5">
+                        <Cookie className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -497,17 +498,17 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
               <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-md border border-white/60">
                 <div className="flex flex-col items-start h-full">
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayFats)}</span>
-                    <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_fats}g</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg sm:text-xl font-bold text-gray-900">{Math.round(todayFats)}</span>
+                    <span className="text-[10px] sm:text-xs text-gray-400 font-medium">/{profile.daily_fats}g</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2">Fats eaten</p>
-                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 mt-auto self-center">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mb-2">Fats eaten</p>
+                  <div className="relative w-16 h-16 sm:w-18 sm:h-18 mt-auto self-center">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
@@ -516,18 +517,20 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       <circle
                         cx="50%"
                         cy="50%"
-                        r="24"
+                        r="28"
                         stroke="currentColor"
                         strokeWidth="3"
                         fill="none"
-                        strokeDasharray={`${2 * Math.PI * 24}`}
-                        strokeDashoffset={`${2 * Math.PI * 24 * (1 - Math.min(todayFats / profile.daily_fats, 1))}`}
+                        strokeDasharray={`${2 * Math.PI * 28}`}
+                        strokeDashoffset={`${2 * Math.PI * 28 * (1 - Math.min(todayFats / profile.daily_fats, 1))}`}
                         className="text-blue-500 transition-all duration-500"
-                        strokeLinecap="round"
+                        strokeLinecap="butt"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Droplet className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
+                      <div className="bg-gray-100 rounded-full p-1.5">
+                        <Droplet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -608,7 +611,12 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 z-40 shadow-lg">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 shadow-lg backdrop-blur-[20px] border-t border-white/30"
+        style={{
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(240,244,247,0.7))",
+        }}
+      >
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
           {/* Navigation items container with equal flex */}
           <div className="flex-1 flex items-center">
