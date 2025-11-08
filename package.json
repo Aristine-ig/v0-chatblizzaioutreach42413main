@@ -9,7 +9,7 @@
     "dev": "vite",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "latest",
@@ -63,7 +63,6 @@
     "recharts": "latest",
     "sass": "latest",
     "sass-embedded": "latest",
-    "shadcn": "3.5.0",
     "sonner": "latest",
     "stylus": "latest",
     "sugarss": "latest",

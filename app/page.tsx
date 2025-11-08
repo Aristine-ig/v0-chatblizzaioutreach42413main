@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/src/lib/supabase"
-import AuthForm from "@/src/components/AuthForm"
-import OnboardingForm from "@/src/components/OnboardingForm"
-import Dashboard from "@/src/components/Dashboard"
+import { supabase } from "@/lib/supabase"
+import AuthForm from "@/components/AuthForm"
+import OnboardingForm from "@/components/OnboardingForm"
+import Dashboard from "@/components/Dashboard"
 
 export default function Page() {
   const [user, setUser] = useState<any>(null)
