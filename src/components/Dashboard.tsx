@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { supabase, type UserProfile, type FoodLog, calculateNutrition } from "../lib/supabase"
 import {
-  Camera,
   LogOut,
   TrendingUp,
   Flame,
@@ -13,15 +12,10 @@ import {
   ArrowLeftRight,
   Settings,
   History,
-  Plus,
   Trash2,
-  BarChart3,
-  ImageIcon,
   Scale,
-  Download,
   ChefHat,
   Lightbulb,
-  ScanLine,
   Menu,
   Trophy,
 } from "lucide-react"
@@ -29,9 +23,7 @@ import CameraCapture from "./CameraCapture"
 import HistoryView from "./HistoryView"
 import ManualFoodEntry from "./ManualFoodEntry"
 import AnalyticsView from "./AnalyticsView"
-import MealGallery from "./MealGallery"
 import WeightTracker from "./WeightTracker"
-import ExportView from "./ExportView"
 import MealRecommendations from "./MealRecommendations"
 import HealthierAlternatives from "./HealthierAlternatives"
 import BarcodeScanner from "./BarcodeScanner"
@@ -41,6 +33,10 @@ import SocialView from "./SocialView"
 import AchievementsView from "./AchievementsView"
 import StreakTracker from "./StreakTracker"
 import { achievementService } from "../services/achievementService"
+import AchievementNotification from "./AchievementNotification"
+import type { UserAchievement } from "../services/achievementService"
+import ProgressSection from "./ProgressSection"
+import AddFoodMenu from "./AddFoodMenu"
 
 interface DashboardProps {
   userId: string
@@ -57,9 +53,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
   const [showManualEntry, setShowManualEntry] = useState(false)
   const [showMobileSidebar, setShowMobileSidebar] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
-  const [showGallery, setShowGallery] = useState(false)
   const [showWeightTracker, setShowWeightTracker] = useState(false)
-  const [showExport, setShowExport] = useState(false)
   const [showMealRecommendations, setShowMealRecommendations] = useState(false)
   const [showAlternatives, setShowAlternatives] = useState(false)
   const [selectedFoodForAlternatives, setSelectedFoodForAlternatives] = useState<FoodLog | null>(null)
@@ -74,6 +68,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     fats: 0,
   })
   const [showSettings, setShowSettings] = useState(false)
+  const [achievementNotifications, setAchievementNotifications] = useState<UserAchievement[]>([])
+  const [showProgress, setShowProgress] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -119,11 +115,13 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     setShowBarcodeScanner(false)
     loadData()
 
-    // Check for new achievements
-    const newAchievements = await achievementService.checkAndAwardAchievements(userId)
-    if (newAchievements.length > 0) {
-      // Show a toast or notification for new achievements
-      console.log("New achievements earned:", newAchievements)
+    try {
+      const newAchievements = await achievementService.checkAndAwardAchievements(userId)
+      if (newAchievements.length > 0) {
+        setAchievementNotifications((prev) => [...prev, ...newAchievements])
+      }
+    } catch (error) {
+      console.error("Error checking achievements:", error)
     }
   }
 
@@ -253,16 +251,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     return <AnalyticsView userId={userId} onClose={() => setShowAnalytics(false)} />
   }
 
-  if (showGallery) {
-    return <MealGallery userId={userId} onClose={() => setShowGallery(false)} />
-  }
-
   if (showWeightTracker) {
     return <WeightTracker userId={userId} onClose={() => setShowWeightTracker(false)} />
-  }
-
-  if (showExport) {
-    return <ExportView userId={userId} onClose={() => setShowExport(false)} />
   }
 
   if (showMealRecommendations && profile) {
@@ -311,8 +301,33 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
     return <SettingsSection userId={userId} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
   }
 
+  if (showProgress && profile) {
+    return (
+      <ProgressSection
+        userId={userId}
+        onClose={() => setShowProgress(false)}
+        remainingCalories={profile.daily_calories - todayCalories}
+        remainingProtein={profile.daily_protein - todayProtein}
+        remainingCarbs={profile.daily_carbs - todayCarbs}
+        remainingFats={profile.daily_fats - todayFats}
+        goal={profile.goal}
+        todayLogs={todayLogs}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50">
+      {achievementNotifications.map((achievement, index) => (
+        <AchievementNotification
+          key={achievement.id}
+          achievement={achievement}
+          onClose={() => {
+            setAchievementNotifications((prev) => prev.filter((a) => a.id !== achievement.id))
+          }}
+        />
+      ))}
+
       <div className="max-w-4xl mx-auto p-3 sm:p-4 pb-28 sm:pb-24">
         <div className="flex justify-between items-center mb-4 sm:mb-6 pt-2 sm:pt-4">
           <div>
@@ -342,59 +357,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
           </div>
         </div>
 
-        <div className="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
-          <button
-            onClick={() => setShowAnalytics(true)}
-            className="bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group"
-          >
-            <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-gray-800">Analytics</div>
-          </button>
-
-          <button
-            onClick={() => setShowGallery(true)}
-            className="bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group"
-          >
-            <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-pink-500 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-gray-800">Gallery</div>
-          </button>
-
-          <button
-            onClick={() => setShowWeightTracker(true)}
-            className="bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group"
-          >
-            <Scale className="w-6 h-6 sm:w-8 sm:h-8 text-violet-500 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-gray-800">Weight</div>
-          </button>
-
-          <button
-            onClick={() => setShowExport(true)}
-            className="bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group"
-          >
-            <Download className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-gray-800">Export</div>
-          </button>
-
-          <button
-            onClick={() => setShowMealRecommendations(true)}
-            className="bg-gradient-to-br from-emerald-50 to-teal-100 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group border-2 border-emerald-200"
-          >
-            <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-emerald-800">AI Meals</div>
-          </button>
-
-          <button
-            onClick={() => {
-              if (todayLogs.length > 0) {
-                setSelectedFoodForAlternatives(todayLogs[0])
-                setShowAlternatives(true)
-              }
-            }}
-            className="bg-gradient-to-br from-amber-50 to-orange-100 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 hover:shadow-xl transition-all group border-2 border-amber-200"
-          >
-            <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600 mb-2 mx-auto group-hover:scale-110 transition-transform" />
-            <div className="text-xs sm:text-sm font-semibold text-amber-800">Alternatives</div>
-          </button>
+        <div className="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+          {/* Removed all quick action buttons - they're now in Progress section */}
         </div>
 
         <StreakTracker userId={userId} />
@@ -419,8 +383,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-5xl sm:text-6xl font-bold text-gray-900">{todayCalories}</span>
-                    <span className="text-2xl sm:text-3xl text-gray-400 font-medium">/{profile.daily_calories}</span>
+                    <span className="text-4xl sm:text-5xl font-bold text-gray-900">{todayCalories}</span>
+                    <span className="text-xl sm:text-2xl text-gray-400 font-medium">/{profile.daily_calories}</span>
                   </div>
                   <p className="text-sm sm:text-base text-gray-600 mt-3">Calories eaten</p>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -465,7 +429,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">{Math.round(todayProtein)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayProtein)}</span>
                     <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_protein}g</span>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600 mb-2">Protein eaten</p>
@@ -503,7 +467,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">{Math.round(todayCarbs)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayCarbs)}</span>
                     <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_carbs}g</span>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600 mb-2">Carbs eaten</p>
@@ -541,7 +505,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-100">
                 <div className="flex flex-col items-start h-full">
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">{Math.round(todayFats)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(todayFats)}</span>
                     <span className="text-xs sm:text-sm text-gray-400 font-medium">/{profile.daily_fats}g</span>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600 mb-2">Fats eaten</p>
@@ -649,43 +613,13 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             </div>
           </div>
         )}
-
-        {showGallery && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 transition-all hover:shadow-2xl">
-            <div className="flex justify-between items-center mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Meal Gallery</h2>
-              <button onClick={() => setShowGallery(false)} className="text-gray-500 hover:text-gray-700">
-                Hide
-              </button>
-            </div>
-            <MealGallery userId={userId} onClose={() => setShowGallery(false)} inline />
-          </div>
-        )}
       </div>
 
-      <div className="fixed bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 sm:gap-4 z-40">
-        <button
-          onClick={() => setShowManualEntry(true)}
-          className="bg-white hover:bg-gray-50 text-emerald-600 rounded-full p-4 sm:p-5 shadow-2xl transition-all hover:scale-110 active:scale-95"
-          title="Add manually"
-        >
-          <Plus className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
-        <button
-          onClick={() => setShowBarcodeScanner(true)}
-          className="bg-white hover:bg-gray-50 text-teal-600 rounded-full p-4 sm:p-5 shadow-2xl transition-all hover:scale-110 active:scale-95"
-          title="Scan barcode"
-        >
-          <ScanLine className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
-        <button
-          onClick={() => setShowCamera(true)}
-          className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full p-5 sm:p-6 shadow-2xl transition-all hover:scale-110 active:scale-95"
-          title="Scan with camera"
-        >
-          <Camera className="w-7 h-7 sm:w-8 sm:h-8" />
-        </button>
-      </div>
+      <AddFoodMenu
+        onCameraClick={() => setShowCamera(true)}
+        onBarcodeClick={() => setShowBarcodeScanner(true)}
+        onManualClick={() => setShowManualEntry(true)}
+      />
 
       {showManualEntry && (
         <ManualFoodEntry userId={userId} onClose={() => setShowManualEntry(false)} onFoodLogged={handleFoodLogged} />
@@ -709,6 +643,17 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
             <div className="p-4 space-y-3">
               <button
                 onClick={() => {
+                  setShowProgress(true)
+                  setShowMobileSidebar(false)
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-teal-100 hover:from-emerald-100 hover:to-teal-200 rounded-xl transition-all border-2 border-emerald-200"
+              >
+                <TrendingUp className="w-6 h-6 text-emerald-600" />
+                <span className="font-medium text-emerald-800">Progress</span>
+              </button>
+
+              <button
+                onClick={() => {
                   setShowHistory(true)
                   setShowMobileSidebar(false)
                 }}
@@ -716,17 +661,6 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               >
                 <History className="w-6 h-6 text-gray-600" />
                 <span className="font-medium text-gray-800">History</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAnalytics(true)
-                  setShowMobileSidebar(false)
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all"
-              >
-                <BarChart3 className="w-6 h-6 text-blue-500" />
-                <span className="font-medium text-gray-800">Analytics</span>
               </button>
 
               <button
@@ -742,17 +676,6 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
 
               <button
                 onClick={() => {
-                  setShowGallery(true)
-                  setShowMobileSidebar(false)
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all"
-              >
-                <ImageIcon className="w-6 h-6 text-pink-500" />
-                <span className="font-medium text-gray-800">Gallery</span>
-              </button>
-
-              <button
-                onClick={() => {
                   setShowWeightTracker(true)
                   setShowMobileSidebar(false)
                 }}
@@ -760,17 +683,6 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
               >
                 <Scale className="w-6 h-6 text-violet-500" />
                 <span className="font-medium text-gray-800">Weight Tracker</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowExport(true)
-                  setShowMobileSidebar(false)
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all"
-              >
-                <Download className="w-6 h-6 text-green-500" />
-                <span className="font-medium text-gray-800">Export Data</span>
               </button>
 
               <button

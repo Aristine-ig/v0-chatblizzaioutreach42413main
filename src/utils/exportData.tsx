@@ -1,15 +1,15 @@
-import { FoodLog, UserProfile } from '../lib/supabase';
+import type { FoodLog, UserProfile } from "../lib/supabase"
 
 interface ExportOptions {
-  startDate: Date;
-  endDate: Date;
+  startDate: Date
+  endDate: Date
 }
 
 export const exportToCSV = (logs: FoodLog[], profile: UserProfile | null) => {
-  const headers = ['Date', 'Time', 'Food Name', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fats (g)'];
+  const headers = ["Date", "Time", "Food Name", "Calories", "Protein (g)", "Carbs (g)", "Fats (g)", "Image URL"]
 
-  const rows = logs.map(log => {
-    const date = new Date(log.logged_at);
+  const rows = logs.map((log) => {
+    const date = new Date(log.logged_at)
     return [
       date.toLocaleDateString(),
       date.toLocaleTimeString(),
@@ -18,72 +18,75 @@ export const exportToCSV = (logs: FoodLog[], profile: UserProfile | null) => {
       log.protein.toFixed(1),
       log.carbs.toFixed(1),
       log.fats.toFixed(1),
-    ];
-  });
+      log.image_url || "",
+    ]
+  })
 
-  const totalCalories = logs.reduce((sum, log) => sum + log.calories, 0);
-  const totalProtein = logs.reduce((sum, log) => sum + log.protein, 0);
-  const totalCarbs = logs.reduce((sum, log) => sum + log.carbs, 0);
-  const totalFats = logs.reduce((sum, log) => sum + log.fats, 0);
+  const totalCalories = logs.reduce((sum, log) => sum + log.calories, 0)
+  const totalProtein = logs.reduce((sum, log) => sum + log.protein, 0)
+  const totalCarbs = logs.reduce((sum, log) => sum + log.carbs, 0)
+  const totalFats = logs.reduce((sum, log) => sum + log.fats, 0)
 
   const summaryRows = [
     [],
-    ['Summary'],
-    ['Total Entries', logs.length.toString()],
-    ['Total Calories', totalCalories.toString()],
-    ['Total Protein (g)', totalProtein.toFixed(1)],
-    ['Total Carbs (g)', totalCarbs.toFixed(1)],
-    ['Total Fats (g)', totalFats.toFixed(1)],
-  ];
+    ["Summary"],
+    ["Total Entries", logs.length.toString()],
+    ["Total Calories", totalCalories.toString()],
+    ["Total Protein (g)", totalProtein.toFixed(1)],
+    ["Total Carbs (g)", totalCarbs.toFixed(1)],
+    ["Total Fats (g)", totalFats.toFixed(1)],
+  ]
 
   if (profile) {
     summaryRows.push(
       [],
-      ['Daily Goals'],
-      ['Target Calories', profile.daily_calories.toString()],
-      ['Target Protein (g)', profile.daily_protein.toString()],
-      ['Target Carbs (g)', profile.daily_carbs.toString()],
-      ['Target Fats (g)', profile.daily_fats.toString()],
-    );
+      ["Daily Goals"],
+      ["Target Calories", profile.daily_calories.toString()],
+      ["Target Protein (g)", profile.daily_protein.toString()],
+      ["Target Carbs (g)", profile.daily_carbs.toString()],
+      ["Target Fats (g)", profile.daily_fats.toString()],
+    )
   }
 
   const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
-    ...summaryRows.map(row => row.map(cell => `"${cell}"`).join(',')),
-  ].join('\n');
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ...summaryRows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+  ].join("\n")
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const link = document.createElement("a")
+  const url = URL.createObjectURL(blob)
 
-  link.setAttribute('href', url);
-  link.setAttribute('download', `nutrition-export-${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+  link.setAttribute("href", url)
+  link.setAttribute("download", `nutrition-export-${new Date().toISOString().split("T")[0]}.csv`)
+  link.style.visibility = "hidden"
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
 export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, options: ExportOptions) => {
-  const dailyStats: { [key: string]: { calories: number; protein: number; carbs: number; fats: number; meals: FoodLog[] } } = {};
+  const dailyStats: {
+    [key: string]: { calories: number; protein: number; carbs: number; fats: number; meals: FoodLog[] }
+  } = {}
 
-  logs.forEach(log => {
-    const dateStr = new Date(log.logged_at).toLocaleDateString();
+  logs.forEach((log) => {
+    const dateStr = new Date(log.logged_at).toLocaleDateString()
     if (!dailyStats[dateStr]) {
-      dailyStats[dateStr] = { calories: 0, protein: 0, carbs: 0, fats: 0, meals: [] };
+      dailyStats[dateStr] = { calories: 0, protein: 0, carbs: 0, fats: 0, meals: [] }
     }
-    dailyStats[dateStr].calories += log.calories;
-    dailyStats[dateStr].protein += log.protein;
-    dailyStats[dateStr].carbs += log.carbs;
-    dailyStats[dateStr].fats += log.fats;
-    dailyStats[dateStr].meals.push(log);
-  });
+    dailyStats[dateStr].calories += log.calories
+    dailyStats[dateStr].protein += log.protein
+    dailyStats[dateStr].carbs += log.carbs
+    dailyStats[dateStr].fats += log.fats
+    dailyStats[dateStr].meals.push(log)
+  })
 
-  const totalCalories = logs.reduce((sum, log) => sum + log.calories, 0);
-  const totalProtein = logs.reduce((sum, log) => sum + log.protein, 0);
+  const totalCalories = logs.reduce((sum, log) => sum + log.calories, 0)
+  const totalProtein = logs.reduce((sum, log) => sum + log.protein, 0)
 
-  const avgCalories = logs.length > 0 ? Math.round(totalCalories / Object.keys(dailyStats).length) : 0;
+  const avgCalories = logs.length > 0 ? Math.round(totalCalories / Object.keys(dailyStats).length) : 0
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -170,6 +173,18 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 12px;
+        }
+        .meal-image {
+          width: 48px;
+          height: 48px;
+          border-radius: 8px;
+          object-fit: cover;
+          flex-shrink: 0;
+        }
+        .meal-info {
+          flex: 1;
+          min-width: 0;
         }
         .meal-name {
           font-weight: 600;
@@ -183,6 +198,7 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
           font-size: 12px;
           color: #6b7280;
           text-align: right;
+          flex-shrink: 0;
         }
         .goals {
           background: #eff6ff;
@@ -240,7 +256,9 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
         </div>
       </div>
 
-      ${profile ? `
+      ${
+        profile
+          ? `
       <div class="goals">
         <h3>Daily Goals</h3>
         <div class="goals-grid">
@@ -262,10 +280,15 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
           </div>
         </div>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
 
       <h2>Daily Breakdown</h2>
-      ${Object.entries(dailyStats).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()).map(([date, data]) => `
+      ${Object.entries(dailyStats)
+        .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+        .map(
+          ([date, data]) => `
         <div class="day-section">
           <div class="day-header">${date}</div>
           <div class="day-totals">
@@ -286,9 +309,12 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
               <div style="color: #6b7280;">Fats</div>
             </div>
           </div>
-          ${data.meals.map(meal => `
+          ${data.meals
+            .map(
+              (meal) => `
             <div class="meal-item">
-              <div>
+              ${meal.image_url ? `<img src="${meal.image_url}" alt="${meal.food_name}" class="meal-image" />` : ""}
+              <div class="meal-info">
                 <div class="meal-name">${meal.food_name}</div>
                 <div class="meal-time">${new Date(meal.logged_at).toLocaleTimeString()}</div>
               </div>
@@ -297,22 +323,26 @@ export const exportToPDF = (logs: FoodLog[], profile: UserProfile | null, option
                 <div>P: ${Math.round(meal.protein)}g | C: ${Math.round(meal.carbs)}g | F: ${Math.round(meal.fats)}g</div>
               </div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </div>
-      `).join('')}
+      `,
+        )
+        .join("")}
     </body>
     </html>
-  `;
+  `
 
-  const printWindow = window.open('', '_blank');
+  const printWindow = window.open("", "_blank")
   if (printWindow) {
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    printWindow.document.write(htmlContent)
+    printWindow.document.close()
 
     printWindow.onload = () => {
       setTimeout(() => {
-        printWindow.print();
-      }, 250);
-    };
+        printWindow.print()
+      }, 250)
+    }
   }
-};
+}

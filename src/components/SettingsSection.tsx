@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, User, Users, Bell, Trophy, History, LogOut, SettingsIcon, Edit2 } from "lucide-react"
+import { X, User, Users, Bell, Trophy, LogOut, SettingsIcon, Edit2, Download, ImageIcon } from "lucide-react"
 import NotificationsView from "./NotificationsView"
 import SocialView from "./SocialView"
 import AchievementsView from "./AchievementsView"
-import HistoryView from "./HistoryView"
+import MealGallery from "./MealGallery"
 import ProfileEdit from "./ProfileEdit"
+import ExportView from "./ExportView"
 import { supabase, type UserProfile } from "../lib/supabase"
 
 interface SettingsSectionProps {
@@ -15,7 +16,7 @@ interface SettingsSectionProps {
   onLogout: () => void
 }
 
-type SettingsTab = "profile" | "social" | "notifications" | "achievements" | "history"
+type SettingsTab = "profile" | "social" | "notifications" | "achievements" | "mealHistory" | "export"
 
 export default function SettingsSection({ userId, onClose, onLogout }: SettingsSectionProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile")
@@ -47,7 +48,8 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
     { id: "social", label: "Social", icon: Users, color: "text-blue-600" },
     { id: "notifications", label: "Notifications", icon: Bell, color: "text-amber-600" },
     { id: "achievements", label: "Achievements", icon: Trophy, color: "text-amber-500" },
-    { id: "history", label: "View History", icon: History, color: "text-gray-600" },
+    { id: "mealHistory", label: "Meal History", icon: ImageIcon, color: "text-pink-500" },
+    { id: "export", label: "Export Data", icon: Download, color: "text-green-600" },
   ]
 
   return (
@@ -182,8 +184,7 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
             </div>
           )}
 
-          {/* History View */}
-          {activeTab === "history" && (
+          {activeTab === "mealHistory" && (
             <div className="bg-white rounded-3xl shadow-lg p-6 overflow-hidden">
               <button
                 onClick={() => setActiveTab("profile")}
@@ -191,7 +192,22 @@ export default function SettingsSection({ userId, onClose, onLogout }: SettingsS
               >
                 ← Back to Settings
               </button>
-              <HistoryView userId={userId} inline={true} />
+              <MealGallery userId={userId} onClose={() => setActiveTab("profile")} inline={true} />
+            </div>
+          )}
+
+          {/* Export View */}
+          {activeTab === "export" && (
+            <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+              <button
+                onClick={() => setActiveTab("profile")}
+                className="m-6 mb-0 flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                ← Back to Settings
+              </button>
+              <div className="p-6">
+                <ExportView userId={userId} onClose={() => setActiveTab("profile")} />
+              </div>
             </div>
           )}
         </div>
