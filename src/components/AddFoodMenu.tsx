@@ -27,7 +27,7 @@ export default function AddFoodMenu({ onCameraClick, onBarcodeClick, onManualCli
             {/* Scan with Camera Card */}
             <button
               onClick={() => handleOptionClick(onCameraClick)}
-              className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28"
+              className="bg-gray-50 rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28"
             >
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <Camera className="w-6 h-6 text-gray-900" strokeWidth={1.5} />
@@ -38,7 +38,7 @@ export default function AddFoodMenu({ onCameraClick, onBarcodeClick, onManualCli
             {/* Scan Barcode Card */}
             <button
               onClick={() => handleOptionClick(onBarcodeClick)}
-              className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28"
+              className="bg-gray-50 rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28"
             >
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <ScanLine className="w-6 h-6 text-gray-900" strokeWidth={1.5} />
@@ -49,7 +49,7 @@ export default function AddFoodMenu({ onCameraClick, onBarcodeClick, onManualCli
             {/* Add Manually Card */}
             <button
               onClick={() => handleOptionClick(onManualClick)}
-              className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28 col-span-2"
+              className="bg-gray-50 rounded-2xl p-4 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-3 h-28"
             >
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <PenSquare className="w-6 h-6 text-gray-900" strokeWidth={1.5} />

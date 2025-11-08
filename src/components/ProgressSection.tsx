@@ -89,19 +89,19 @@ export default function ProgressSection({
         </div>
 
         {/* Progress Cards */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Analytics Card */}
           <button
             onClick={() => setActiveSection("analytics")}
-            className="w-full glass-effect rounded-3xl p-6 hover:shadow-xl transition-all text-left group"
+            className="w-full glass-effect rounded-3xl p-4 hover:shadow-xl transition-all text-left group"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Analytics</h3>
-                <p className="text-sm text-gray-600">View your nutrition trends and progress over time</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-0.5">Analytics</h3>
+                <p className="text-xs text-gray-600">View your nutrition trends and progress over time</p>
               </div>
             </div>
           </button>
@@ -109,15 +109,15 @@ export default function ProgressSection({
           {/* Weight Tracker Card */}
           <button
             onClick={() => setActiveSection("weight")}
-            className="w-full glass-effect rounded-3xl p-6 hover:shadow-xl transition-all text-left group"
+            className="w-full glass-effect rounded-3xl p-4 hover:shadow-xl transition-all text-left group"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-violet-500 to-violet-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                <Scale className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-violet-500 to-violet-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                <Scale className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Weight Tracker</h3>
-                <p className="text-sm text-gray-600">Track your weight changes and body composition</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-0.5">Weight Tracker</h3>
+                <p className="text-xs text-gray-600">Track your weight changes and body composition</p>
               </div>
             </div>
           </button>
@@ -125,15 +125,15 @@ export default function ProgressSection({
           {/* AI Meal Recommendations Card */}
           <button
             onClick={() => setActiveSection("meals")}
-            className="w-full glass-effect rounded-3xl p-6 hover:shadow-xl transition-all text-left group"
+            className="w-full glass-effect rounded-3xl p-4 hover:shadow-xl transition-all text-left group"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                <ChefHat className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                <ChefHat className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">AI Meal Suggestions</h3>
-                <p className="text-sm text-gray-600">Get personalized meal recommendations based on your goals</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-0.5">AI Meal Suggestions</h3>
+                <p className="text-xs text-gray-600">Get personalized meal recommendations based on your goals</p>
               </div>
             </div>
           </button>
@@ -142,15 +142,15 @@ export default function ProgressSection({
           <button
             onClick={() => setActiveSection("alternatives")}
             disabled={todayLogs.length === 0}
-            className="w-full glass-effect rounded-3xl p-6 hover:shadow-xl transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full glass-effect rounded-3xl p-4 hover:shadow-xl transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                <Lightbulb className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Healthier Alternatives</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-lg font-bold text-gray-900 mb-0.5">Healthier Alternatives</h3>
+                <p className="text-xs text-gray-600">
                   {todayLogs.length > 0
                     ? "Discover better food options for your logged meals"
                     : "Log a meal to see alternatives"}
