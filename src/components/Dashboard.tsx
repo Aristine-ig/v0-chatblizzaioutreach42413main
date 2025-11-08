@@ -403,7 +403,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       strokeDasharray={`${2 * Math.PI * 40}`}
                       strokeDashoffset={`${2 * Math.PI * 40 * (1 - Math.min(todayCalories / profile.daily_calories, 1))}`}
                       className="text-gray-900 transition-all duration-500"
-                      strokeLinecap="round"
+                      strokeLinecap="butt"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -448,8 +448,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-gray-100 rounded-full p-1.5">
-                        <Beef className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                      <div className="bg-gray-100 rounded-full p-1">
+                        <Beef className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600" />
                       </div>
                     </div>
                   </div>
@@ -488,8 +488,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-gray-100 rounded-full p-1.5">
-                        <Cookie className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                      <div className="bg-gray-100 rounded-full p-1">
+                        <Cookie className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                       </div>
                     </div>
                   </div>
@@ -528,8 +528,8 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-gray-100 rounded-full p-1.5">
-                        <Droplet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      <div className="bg-gray-100 rounded-full p-1">
+                        <Droplet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                       </div>
                     </div>
                   </div>
