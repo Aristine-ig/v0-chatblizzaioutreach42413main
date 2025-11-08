@@ -627,7 +627,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 currentPage === "home" ? "text-gray-700" : "text-gray-400"
               }`}
             >
-              <Home className="w-7 h-7" strokeWidth={1.5} />
+              <Home className="w-6 h-6" strokeWidth={1.5} />
               <span className={`text-sm ${currentPage === "home" ? "font-semibold" : "font-medium"}`}>Home</span>
             </button>
 
@@ -637,7 +637,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 currentPage === "progress" ? "text-gray-700" : "text-gray-400"
               }`}
             >
-              <BarChart3 className="w-7 h-7" strokeWidth={1.5} />
+              <BarChart3 className="w-6 h-6" strokeWidth={1.5} />
               <span className={`text-sm ${currentPage === "progress" ? "font-semibold" : "font-medium"}`}>
                 Progress
               </span>
@@ -649,7 +649,7 @@ export default function Dashboard({ userId, onLogout }: DashboardProps) {
                 currentPage === "settings" ? "text-gray-700" : "text-gray-400"
               }`}
             >
-              <Settings className="w-7 h-7" strokeWidth={1.5} />
+              <Settings className="w-6 h-6" strokeWidth={1.5} />
               <span className={`text-sm ${currentPage === "settings" ? "font-semibold" : "font-medium"}`}>
                 Settings
               </span>
