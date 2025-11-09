@@ -2,5 +2,11 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
   "framework": null,
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
