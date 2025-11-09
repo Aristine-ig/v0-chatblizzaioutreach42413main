@@ -1,21 +1,18 @@
 // Environment configuration
 // These are public/publishable keys safe for frontend use
 
-const getEnvVar = (key: string, fallback: string): string => {
-  try {
-    return import.meta?.env?.[key] || fallback
-  } catch {
-    return fallback
+const getEnvVar = (key: string, fallback?: string): string => {
+  if (typeof process !== "undefined" && process.env && process.env[key]) {
+    return process.env[key] || fallback || ""
   }
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    return import.meta.env[key] || fallback || ""
+  }
+  return fallback || ""
 }
 
 export const ENV = {
-  SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL", "https://wrovtrvsyxuxnyfvxpys.supabase.co"),
-  SUPABASE_ANON_KEY: getEnvVar(
-    "VITE_SUPABASE_ANON_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indyb3Z0cnZzeXh1eG55ZnZ4cHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjQyNzgsImV4cCI6MjA3NzY0MDI3OH0.fMoETjs6XHhoPV63eTRZC7-jaOPc4A2CCi6u6gpXjHI",
-  ),
-  // ⚠️ WARNING: This API key is exposed in frontend code
-  // Consider using a backend proxy for secure API calls
-  GEMINI_API_KEY: getEnvVar("VITE_GEMINI_API_KEY", "AIzaSyC-3RnkMDcp5Moh5J5okndCNBJGiClBeu0"),
+  SUPABASE_URL: getEnvVar("NEXT_PUBLIC_SUPABASE_URL") || getEnvVar("VITE_SUPABASE_URL"),
+  SUPABASE_ANON_KEY: getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY") || getEnvVar("VITE_SUPABASE_ANON_KEY"),
+  GEMINI_API_KEY: getEnvVar("NEXT_PUBLIC_GEMINI_API_KEY") || getEnvVar("VITE_GEMINI_API_KEY"),
 } as const

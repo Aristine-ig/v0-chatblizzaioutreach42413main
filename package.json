@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "dev": "vite",
+    "build": "next build",
+    "dev": "next dev",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
