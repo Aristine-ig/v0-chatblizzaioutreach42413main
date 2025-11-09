@@ -1,12 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
-import "../styles/globals.css"
-
-export const metadata: Metadata = {
-  title: "Cal AI - Smart Calorie Tracker",
-  description: "Track your nutrition with AI-powered food recognition",
-    generator: 'v0.app'
-}
+import "./globals.css"
 
 export default function RootLayout({
   children,
@@ -19,3 +12,7 @@ export default function RootLayout({
     </html>
   )
 }
+
+export const metadata = {
+      generator: 'v0.app'
+    };
